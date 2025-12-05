@@ -1,0 +1,11 @@
+# IntelliJ project settings
+.idea/
+*.iml
+*.DS_Store
+/bin/
+
+# Compiled class files
+*.class
+
+# Output folder
+/out/
