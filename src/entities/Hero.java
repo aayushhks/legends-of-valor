@@ -6,7 +6,7 @@ import items.Armor;
 
 /**
  * Represents a playable Hero character.
- * Manages stats, inventory, and equipment.
+ * Manages stats, inventory, equipment, and grid position.
  * Implements leveling logic based on HeroType (Warrior, Sorcerer, Paladin).
  */
 public class Hero extends RPGCharacter {
@@ -22,6 +22,11 @@ public class Hero extends RPGCharacter {
     private double dexterity;
     private double money;
     private int experience;
+
+    // Position on the Valor Board
+    private int row;
+    private int col;
+    private int lane; // 0, 1, or 2 (corresponding to Top/Mid/Bot lanes)
 
     // Composition: Hero "has an" Inventory
     private final Inventory inventory;
@@ -51,6 +56,21 @@ public class Hero extends RPGCharacter {
         // HP of heroes = level * 100
         this.hp = this.level * 100;
     }
+
+    // --- Positioning Logic for Valor ---
+    public void setPosition(int row, int col) {
+        this.row = row;
+        this.col = col;
+    }
+
+    public void setLane(int lane) {
+        this.lane = lane;
+    }
+
+    public int getRow() { return row; }
+    public int getCol() { return col; }
+    public int getLane() { return lane; }
+
 
     public void gainExperience(int amount) {
         this.experience += amount;

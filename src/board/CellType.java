@@ -6,9 +6,12 @@ package board;
  */
 public enum CellType {
     // ANSI Color Codes
-    COMMON(" . ", "\u001B[90m"),      // Dark Grey Dot
-    MARKET(" M ", "\u001B[33;1m"),    // Bright Yellow/Gold
-    INACCESSIBLE(" X ", "\u001B[31m");  // Red Hash blocks
+    COMMON(" - ", "\u001B[90m"),      // Dark Grey (Plain)
+    INACCESSIBLE(" X ", "\u001B[31m"), // Red (Wall)
+    NEXUS(" N ", "\u001B[35m"),       // Purple (Base)
+    BUSH(" B ", "\u001B[32m"),        // Green (Dexterity Boost)
+    CAVE(" C ", "\u001B[33m"),        // Yellow (Agility Boost)
+    KOULOU(" K ", "\u001B[34m");      // Blue (Strength Boost)
 
     private final String symbol;
     private final String colorCode;
