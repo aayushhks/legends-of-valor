@@ -10,12 +10,9 @@ public class ValorBoard extends Board {
     private final Cell[][] grid;
     private final Random random;
 
-    // 3 Lanes configuration
-    // Lane 1: Cols 0, 1
-    // Wall 1: Col 2
-    // Lane 2: Cols 3, 4
-    // Wall 2: Col 5
-    // Lane 3: Cols 6, 7
+    // ANSI Colors
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_PURPLE = "\u001B[35m";
 
     public ValorBoard() {
         super(8, 8); // Fixed 8x8 size
@@ -34,7 +31,6 @@ public class ValorBoard extends Board {
                 }
 
                 // 2. Create Nexuses (Row 0 and Row 7)
-                // Monsters spawn at Top (Row 0), Heroes at Bottom (Row 7)
                 if (r == 0 || r == 7) {
                     grid[r][c] = new Cell(CellType.NEXUS);
                     continue;
@@ -63,27 +59,43 @@ public class ValorBoard extends Board {
 
     @Override
     public void printBoard() {
-        // Pretty print the board with borders
-        System.out.println("\n+-------+-------+-------+-------+-------+-------+-------+-------+");
-        for (int r = 0; r < height; r++) {
-            // Empty Padding Row
-            System.out.print("|");
-            for (int c = 0; c < width; c++) System.out.print("       |");
-            System.out.println();
+        // Standard width for a cell to align nicely
+        // Using +-------+ format (7 chars wide)
 
-            // Content Row
+        System.out.println("\n   L-0     L-0     W-1     L-1     L-1     W-2     L-2     L-2   ");
+        printHorizontalDivider();
+
+        for (int r = 0; r < height; r++) {
+            // Row Content
             System.out.print("|");
             for (int c = 0; c < width; c++) {
-                System.out.print("  " + grid[r][c].toString() + "  |");
+                String cellStr = grid[r][c].toString();
+
+                // Formatting: The Cell.toString() returns specific widths based on content
+                // We strip ANSI codes for length calculation if necessary, but here we assume standard formatting.
+                // If Cell returns "| H1 |" (6 chars), we pad it.
+                // If Cell returns " - " (ANSI + 3 chars), we pad it differently.
+
+                // Simple centering logic:
+                if (cellStr.contains("|")) {
+                    // It's an occupant string like | H1 |
+                    System.out.print(cellStr + " |");
+                } else {
+                    // It's a terrain string like " - "
+                    System.out.print("  " + cellStr + "  |");
+                }
             }
-            System.out.println();
+            System.out.println(); // End of row content
 
-            // Empty Padding Row
-            System.out.print("|");
-            for (int c = 0; c < width; c++) System.out.print("       |");
-            System.out.println();
-
-            System.out.println("+-------+-------+-------+-------+-------+-------+-------+-------+");
+            printHorizontalDivider();
         }
+    }
+
+    private void printHorizontalDivider() {
+        System.out.print("+");
+        for (int c = 0; c < width; c++) {
+            System.out.print("-------+");
+        }
+        System.out.println();
     }
 }

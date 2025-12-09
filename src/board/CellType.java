@@ -8,7 +8,10 @@ public enum CellType {
     // ANSI Color Codes
     COMMON(" - ", "\u001B[90m"),      // Dark Grey (Plain)
     INACCESSIBLE(" X ", "\u001B[31m"), // Red (Wall)
-    NEXUS(" N ", "\u001B[35m"),       // Purple (Base)
+    MARKET(" M ", "\u001B[33;1m"),    // Bright Yellow/Gold (Market/Shop)
+
+    // Legends of Valor Specific
+    NEXUS(" N ", "\u001B[35m"),       // Purple (Base/Nexus)
     BUSH(" B ", "\u001B[32m"),        // Green (Dexterity Boost)
     CAVE(" C ", "\u001B[33m"),        // Yellow (Agility Boost)
     KOULOU(" K ", "\u001B[34m");      // Blue (Strength Boost)

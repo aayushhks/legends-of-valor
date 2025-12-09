@@ -15,6 +15,11 @@ public class Monster extends RPGCharacter {
     private double defense;
     private double dodgeChance;
 
+    // --- NEW: Position Tracking for Valor ---
+    private int row;
+    private int col;
+    private int lane;
+
     // Constructor matches file: Name/level/damage/defense/dodge chance
     public Monster(String name, MonsterType type, int level, double baseDamage, double defense, double dodgeChance) {
         super(name, level);
@@ -55,6 +60,18 @@ public class Monster extends RPGCharacter {
     public void reduceDodgeChance(double amount) {
         this.dodgeChance = Math.max(0, this.dodgeChance - amount);
     }
+
+    // --- NEW: Position Getters/Setters ---
+    public void setPosition(int row, int col) {
+        this.row = row;
+        this.col = col;
+    }
+
+    public int getRow() { return row; }
+    public int getCol() { return col; }
+
+    public int getLane() { return lane; }
+    public void setLane(int lane) { this.lane = lane; }
 
     @Override
     public String toString() {
