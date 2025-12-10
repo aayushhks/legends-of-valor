@@ -133,8 +133,8 @@ public class BattleController {
         Monster target = selectMonster(scanner, enemies);
         if (target == null) return false;
 
-        // CAP MONSTER DODGE AT 30% (Making it 70% chance to hit at worst)
-        double monsterDodge = Math.min(0.30, target.getDodgeChance());
+        // CHANGED: Cap monster dodge at 20% (Easy mode: 80% hit chance)
+        double monsterDodge = Math.min(0.20, target.getDodgeChance());
 
         if (rng.nextDouble() < monsterDodge) {
             System.out.println(target.getName() + " dodged the attack!");
@@ -259,9 +259,9 @@ public class BattleController {
 
             Hero target = aliveHeroes.get(rng.nextInt(aliveHeroes.size()));
 
-            // CAP HERO DODGE AT 75% (Heroes can be very dodgy, but not invincible)
+            // CHANGED: Hero Dodge Cap increased to 70% (Game is easier)
             double heroDodgeChance = target.getAgility() / (target.getAgility() + 1000.0);
-            heroDodgeChance = Math.min(0.75, heroDodgeChance);
+            heroDodgeChance = Math.min(0.70, heroDodgeChance);
 
             if (rng.nextDouble() < heroDodgeChance) {
                 System.out.println(target.getName() + " dodged " + monster.getName() + "'s attack!");
