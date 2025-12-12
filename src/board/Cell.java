@@ -3,82 +3,52 @@ package board;
 import entities.Hero;
 import entities.Monster;
 
-/**
- * Represents a single tile on the game board.
- * Encapsulates the terrain type and logic for accessibility.
- */
 public class Cell {
     private final CellType type;
-
-    // --- NEW: Occupancy ---
     private Hero hero;
     private Monster monster;
+
+    // ANSI Colors
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_CYAN = "\u001B[36m";
+    private static final String ANSI_RED = "\u001B[31m";
+    private static final String ANSI_PURPLE = "\u001B[35m";
 
     public Cell(CellType type) {
         this.type = type;
     }
 
-    public CellType getType() {
-        return type;
-    }
+    public CellType getType() { return type; }
 
-    public boolean isAccessible() {
-        return type != CellType.INACCESSIBLE;
-    }
+    public void setHero(Hero hero) { this.hero = hero; }
+    public Hero getHero() { return hero; }
+    public void removeHero() { this.hero = null; }
+    public boolean hasHero() { return hero != null; }
 
-    public boolean isMarket() {
-        return type == CellType.MARKET; // Note: Markets are primarily in LegendsGame, but Nexus acts as one in Valor
-    }
+    public void setMonster(Monster monster) { this.monster = monster; }
+    public Monster getMonster() { return monster; }
+    public void removeMonster() { this.monster = null; }
+    public boolean hasMonster() { return monster != null; }
 
-    public boolean isCommon() {
-        return type == CellType.COMMON;
-    }
-
-    // --- NEW: Hero Management ---
-    public void setHero(Hero hero) {
-        this.hero = hero;
-    }
-
-    public Hero getHero() {
-        return hero;
-    }
-
-    public void removeHero() {
-        this.hero = null;
-    }
-
-    public boolean hasHero() {
-        return hero != null;
-    }
-
-    // --- NEW: Monster Management ---
-    public void setMonster(Monster monster) {
-        this.monster = monster;
-    }
-
-    public Monster getMonster() {
-        return monster;
-    }
-
-    public void removeMonster() {
-        this.monster = null;
-    }
-
-    public boolean hasMonster() {
-        return monster != null;
-    }
+    public boolean isAccessible() { return type != CellType.INACCESSIBLE; }
+    public boolean isCommon() { return type == CellType.COMMON; }
+    public boolean isMarket() { return type == CellType.MARKET; }
 
     @Override
     public String toString() {
-        // Priority Render: Hero+Monster -> Hero -> Monster -> Terrain
+        // MUST return exactly 3 visible characters to fit the board alignment
+
         if (hasHero() && hasMonster()) {
-            return "|H&M|"; // Rare case where both share a cell
+            return ANSI_PURPLE + "H&M" + ANSI_RESET;
         } else if (hasHero()) {
-            // Print H1, H2, etc. based on lane if possible, or just H
-            return "| H" + (hero.getLane() + 1) + "|";
+            // " H1" (Space + H + Number) = 3 chars
+            return ANSI_CYAN + " H" + (hero.getLane() + 1) + ANSI_RESET;
         } else if (hasMonster()) {
-            return "| M" + (monster.getLane() + 1) + "|";
+            // " M1" (Space + M + Number) = 3 chars
+            return ANSI_RED + " M" + (monster.getLane() + 1) + ANSI_RESET;
         }
+
+        // Default types like " - ", " N ", " X " are already 3 chars
         return type.getSymbol();
     }
 }
