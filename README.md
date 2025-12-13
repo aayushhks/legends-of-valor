@@ -5,9 +5,9 @@
 - Email: kolap@bu.edu
 - Student ID: 
 
-- Name:
-- Email:
-- Student ID:
+- Name: Aayush Kumar
+- Email: aayushks@bu.edu
+- Student ID: U73761402
 
 ---
 
