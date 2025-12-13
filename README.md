@@ -311,6 +311,15 @@ Text files containing game data in CSV format:
 - Terminal with ANSI color support  
 
 ## Compile and Run
+
+### Windows CMD:
+```cmd
+mkdir bin
+javac -encoding UTF-8 -d bin src\Main.java src\board\*.java src\common\*.java src\entities\*.java src\game\*.java src\items\*.java src\utils\*.java
+java -cp bin Main
+```
+
+### Linux/Mac/Unix:
 ```bash
 mkdir -p bin && javac -d bin src/**/*.java && java -cp bin Main
 ```
