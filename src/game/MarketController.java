@@ -78,6 +78,32 @@ public class MarketController {
         System.out.println(ANSI_GREEN + "You leave the market." + ANSI_RESET);
     }
 
+    /**
+     * Overloaded method for single hero market access (for Legends of Valor).
+     * No hero selection needed - directly uses the provided hero.
+     */
+    public void enterMarket(Scanner scanner, Hero hero) {
+        List<Item> marketInventory = generateMarketInventory();
+
+        boolean inMarket = true;
+        while (inMarket) {
+            System.out.println("\n" + ANSI_YELLOW + "--- Market Menu ---" + ANSI_RESET);
+            System.out.println(ANSI_CYAN + "Hero: " + hero.getName() + " | Level: " + hero.getLevel() + " | Gold: " + ANSI_YELLOW + hero.getMoney() + ANSI_RESET);
+            System.out.println("1. Buy Items");
+            System.out.println("2. Sell Items");
+            System.out.println("3. Exit Market");
+
+            int choice = InputValidator.getValidInt(scanner, "Choose action: ", 1, 3);
+
+            switch (choice) {
+                case 1: buyLoopSingleHero(scanner, hero, marketInventory); break;
+                case 2: sellLoopSingleHero(scanner, hero); break;
+                case 3: inMarket = false; break;
+            }
+        }
+        System.out.println(ANSI_GREEN + hero.getName() + " leaves the market." + ANSI_RESET);
+    }
+
     private List<Item> generateMarketInventory() {
         List<Item> inventory = new ArrayList<>();
         if (globalItemCatalog.isEmpty()) return inventory;
@@ -99,9 +125,12 @@ public class MarketController {
     private void buyLoop(Scanner scanner, Party party, List<Item> marketInventory) {
         Hero shopper = selectHero(scanner, party, "Who is buying?");
         if (shopper == null) return;
+        buyLoopSingleHero(scanner, shopper, marketInventory);
+    }
 
+    private void buyLoopSingleHero(Scanner scanner, Hero shopper, List<Item> marketInventory) {
         while (true) {
-            System.out.println("\n" + ANSI_WHITE_BOLD + "--- Items for Sale (Shopper: " + shopper.getName() + " | Gold: " + shopper.getMoney() + ") ---" + ANSI_RESET);
+            System.out.println("\n" + ANSI_WHITE_BOLD + "--- Items for Sale (Shopper: " + shopper.getName() + " | Gold: " + ANSI_YELLOW + shopper.getMoney() + ANSI_RESET + ") ---" + ANSI_RESET);
             printItemTable(marketInventory);
             System.out.println((marketInventory.size() + 1) + ". Back");
 
@@ -136,7 +165,10 @@ public class MarketController {
     private void sellLoop(Scanner scanner, Party party) {
         Hero seller = selectHero(scanner, party, "Who is selling?");
         if (seller == null) return;
+        sellLoopSingleHero(scanner, seller);
+    }
 
+    private void sellLoopSingleHero(Scanner scanner, Hero seller) {
         while (true) {
             List<Item> sellableItems = seller.getInventory().getItems();
             if (sellableItems.isEmpty()) {

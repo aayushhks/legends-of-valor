@@ -30,6 +30,7 @@ public class ValorGame extends Game {
     private Party party;
     private List<Monster> activeMonsters;
     private List<Monster> monsterCatalog;
+    private MarketController marketController;
 
     private int roundCount;
     private boolean quitGame;
@@ -59,6 +60,7 @@ public class ValorGame extends Game {
         this.activeMonsters = new ArrayList<>();
         this.roundCount = 1;
         this.quitGame = false;
+        this.marketController = new MarketController();
 
         // 3. Setup Party
         setupParty(scanner);
@@ -169,13 +171,14 @@ public class ValorGame extends Game {
             while (!actionTaken && !quitGame) {
                 printControls();
 
-                String choice = InputValidator.getValidOption(scanner, "Action: ", "w", "a", "t", "r", "p", "e", "i", "q");
+                String choice = InputValidator.getValidOption(scanner, "Action: ", "w", "a", "t", "r", "m", "p", "e", "i", "q");
 
                 switch (choice) {
                     case "w": actionTaken = handleMove(scanner, hero); break;
                     case "a": actionTaken = handleAttack(scanner, hero); break;
                     case "t": actionTaken = handleTeleport(scanner, hero); break;
                     case "r": actionTaken = handleRecall(hero); break;
+                    case "m": actionTaken = handleMarket(scanner, hero); break;
                     case "p": actionTaken = handlePotion(scanner, hero); break;
                     case "e": actionTaken = handleEquip(scanner, hero); break;
                     case "i": System.out.println(hero); break;
@@ -203,6 +206,7 @@ public class ValorGame extends Game {
         System.out.print("[" + ANSI_YELLOW + "A" + ANSI_RESET + "]ttack ");
         System.out.print("[" + ANSI_YELLOW + "T" + ANSI_RESET + "]eleport ");
         System.out.print("[" + ANSI_YELLOW + "R" + ANSI_RESET + "]ecall ");
+        System.out.print("[" + ANSI_YELLOW + "M" + ANSI_RESET + "]arket ");
         System.out.print("[" + ANSI_YELLOW + "P" + ANSI_RESET + "]otion ");
         System.out.print("[" + ANSI_YELLOW + "E" + ANSI_RESET + "]quip ");
         System.out.print("[" + ANSI_YELLOW + "I" + ANSI_RESET + "]nfo ");
@@ -409,6 +413,27 @@ public class ValorGame extends Game {
         spawn.setHero(hero);
         System.out.println(ANSI_CYAN + hero.getName() + " recalled to Nexus." + ANSI_RESET);
         return true;
+    }
+
+    private boolean handleMarket(Scanner scanner, Hero hero) {
+        Cell currentCell = board.getCell(hero.getRow(), hero.getCol());
+        
+        // Check if hero is in a Nexus cell (row 7 is Hero Nexus)
+        if (currentCell.getType() != CellType.NEXUS) {
+            System.out.println(ANSI_RED + "Market unavailable: You must be in your Nexus to access the market!" + ANSI_RESET);
+            return false;
+        }
+        
+        System.out.println(ANSI_GREEN + hero.getName() + " enters the Nexus market..." + ANSI_RESET);
+        
+        // Use the overloaded single-hero market method
+        marketController.enterMarket(scanner, hero);
+        
+        // Redisplay the board after exiting market
+        board.printBoard();
+        
+        // Market visit doesn't consume a turn
+        return false;
     }
 
     private boolean handlePotion(Scanner scanner, Hero hero) {
