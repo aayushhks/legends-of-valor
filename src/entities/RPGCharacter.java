@@ -45,6 +45,8 @@ public abstract class RPGCharacter {
         return hp <= 0;
     }
 
+    public abstract double attack(RPGCharacter target);
+
     /**
      * Abstract method forcing subclasses to define their specific string representation.
      */
