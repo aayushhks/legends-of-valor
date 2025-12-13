@@ -43,7 +43,8 @@ public class ValorBoard extends Board {
 
     @Override
     public void printBoard() {
-        System.out.println("\nL-0    L-0    W-1    L-1    L-1    W-2    L-2    L-2");
+        // Each column is 7 chars wide (6 content + 1 border): center 3-char labels
+        System.out.println("\n  L-0    L-0    W-1    L-1    L-1    W-2    L-2    L-2  ");
         printHorizontalDivider();
 
         for (int r = 0; r < height; r++) {
