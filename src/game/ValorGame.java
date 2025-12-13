@@ -1,6 +1,7 @@
 package game;
 
 import board.Cell;
+import board.CellType;
 import board.ValorBoard;
 import common.InputValidator;
 import entities.Hero;
@@ -83,13 +84,13 @@ public class ValorGame extends Game {
         while (party.getHeroes().size() < 3) {
             System.out.println("\n" + ANSI_WHITE_BOLD + "Party Size: " + party.getHeroes().size() + "/3" + ANSI_RESET);
 
-            // --- TABLE HEADER ---
+            // TABLE HEADER
             System.out.println(ANSI_CYAN + "+----+----------------------+-----------+-----+------+------+------+------+------+" + ANSI_RESET);
             System.out.printf(ANSI_CYAN + "| %-2s | %-20s | %-9s | %-3s | %-4s | %-4s | %-4s | %-4s | %-4s |%n" + ANSI_RESET,
                     "ID", "Name", "Class", "Lvl", "HP", "MP", "Str", "Dex", "Agi");
             System.out.println(ANSI_CYAN + "+----+----------------------+-----------+-----+------+------+------+------+------+" + ANSI_RESET);
 
-            // --- TABLE ROWS ---
+            // TABLE ROWS
             for (int i = 0; i < availableHeroes.size(); i++) {
                 Hero h = availableHeroes.get(i);
                 System.out.printf("| %-2d | %-20s | %-9s | %-3d | %-4.0f | %-4.0f | %-4.0f | %-4.0f | %-4.0f |%n",
@@ -166,7 +167,6 @@ public class ValorGame extends Game {
             boolean actionTaken = false;
 
             while (!actionTaken && !quitGame) {
-                // --- UPDATE: Use the new colorful controls method ---
                 printControls();
 
                 String choice = InputValidator.getValidOption(scanner, "Action: ", "w", "a", "t", "r", "p", "e", "i", "q");
@@ -197,7 +197,6 @@ public class ValorGame extends Game {
         roundCount++;
     }
 
-    // --- NEW HELPER METHOD ---
     private void printControls() {
         System.out.print("CONTROLS: ");
         System.out.print("[" + ANSI_YELLOW + "W" + ANSI_RESET + "]Move ");
@@ -211,7 +210,7 @@ public class ValorGame extends Game {
         System.out.println(ANSI_CYAN + "----------------------------------------------------------------" + ANSI_RESET);
     }
 
-    // --- HERO ACTIONS ---
+    // HERO ACTIONS
 
     private boolean handleMove(Scanner scanner, Hero hero) {
         System.out.println("Move: [W]Up [A]Left [S]Down [D]Right");
@@ -233,7 +232,38 @@ public class ValorGame extends Game {
             return false;
         }
 
+        // No Passing Logic (Zone of Control)
+        // If moving North (forward), check if any monster is in this lane at current row or North of it
+        if (dR < 0) { // Moving UP
+            for (Monster m : activeMonsters) {
+                if (m.getLane() == hero.getLane()) {
+                    // If monster is 'ahead' or on same row, you cannot bypass it
+                    // 'Ahead' means closer to Row 0.
+                    if (m.getRow() <= hero.getRow()) {
+                        if (newR < m.getRow()) {
+                            System.out.println(ANSI_RED + "Blocked: You cannot move behind " + m.getName() + "!" + ANSI_RESET);
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
         Cell target = board.getCell(newR, newC);
+
+        // Obstacles
+        if (target.getType() == CellType.OBSTACLE) {
+            System.out.println(ANSI_YELLOW + "An OBSTACLE blocks your path." + ANSI_RESET);
+            String choice = InputValidator.getValidOption(scanner, "Do you want to destroy it? (y/n): ", "y", "n");
+
+            if (choice.equals("y")) {
+                target.setType(CellType.COMMON); // Convert to plain cell
+                System.out.println(ANSI_GREEN + "You destroyed the obstacle! (Turn Used)" + ANSI_RESET);
+                return true; // Turn consumed, but hero doesn't move yet
+            } else {
+                return false; // Action cancelled
+            }
+        }
 
         // 1. Terrain Check
         if (!target.isAccessible()) {
@@ -301,8 +331,7 @@ public class ValorGame extends Game {
         int idx = InputValidator.getValidInt(scanner, "Target: ", 1, targets.size()) - 1;
         Monster target = targets.get(idx);
 
-        double weaponDmg = (hero.getEquippedWeapon() != null) ? hero.getEquippedWeapon().getDamage() : 0;
-        double rawDmg = (hero.getStrength() + weaponDmg) * 0.05;
+        double rawDmg = hero.attack(target);
 
         if (Math.random() < target.getDodgeChance()) {
             System.out.println(target.getName() + " DODGED the attack!");
@@ -393,10 +422,9 @@ public class ValorGame extends Game {
         int choice = InputValidator.getValidInt(scanner, "Use: ", 1, potions.size()) - 1;
         Potion p = potions.get(choice);
 
-        if (p.affects("Health")) hero.setHp(hero.getHp() + p.getAttributeIncrease());
-        if (p.affects("Mana")) hero.setMana(hero.getMana() + p.getAttributeIncrease());
+        p.apply(hero);
+
         hero.getInventory().removeItem(p);
-        System.out.println("Used " + p.getName());
         return true;
     }
 
@@ -430,7 +458,6 @@ public class ValorGame extends Game {
                 continue;
             }
 
-            // Simplified AI: Move South if possible
             int newR = m.getRow() + 1;
             if (newR < 8) {
                 Cell t = board.getCell(newR, m.getCol());
@@ -457,6 +484,20 @@ public class ValorGame extends Game {
         }
     }
 
+    private void printDashboard() {
+        System.out.println(ANSI_CYAN + "\n+------------------------------------------------------------+" + ANSI_RESET);
+        System.out.println(ANSI_CYAN + "|" + ANSI_RESET + ANSI_WHITE_BOLD + "                        PARTY STATUS                        " + ANSI_RESET + ANSI_CYAN + "|" + ANSI_RESET);
+        System.out.println(ANSI_CYAN + "+----------------------+-------+--------+--------+-----------+" + ANSI_RESET);
+        System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " %-5s " + ANSI_CYAN + "|" + ANSI_RESET + " %-6s " + ANSI_CYAN + "|" + ANSI_RESET + " %-6s " + ANSI_CYAN + "|" + ANSI_RESET + " %-9s " + ANSI_CYAN + "|\n" + ANSI_RESET, "NAME", "LVL", "HP", "MP", "GOLD");
+        System.out.println(ANSI_CYAN + "+----------------------+-------+--------+--------+-----------+" + ANSI_RESET);
+
+        for (Hero h : party.getHeroes()) {
+            System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " %-5d " + ANSI_CYAN + "|" + ANSI_RESET + " %-6.0f " + ANSI_CYAN + "|" + ANSI_RESET + " %-6.0f " + ANSI_CYAN + "|" + ANSI_RESET + " %-9.0f " + ANSI_CYAN + "|\n" + ANSI_RESET,
+                    h.getName(), h.getLevel(), h.getHp(), h.getMana(), h.getMoney());
+        }
+        System.out.println(ANSI_CYAN + "+------------------------------------------------------------+" + ANSI_RESET);
+    }
+
     @Override
     protected boolean isGameOver() {
         for (Hero h : party.getHeroes()) {
@@ -479,6 +520,10 @@ public class ValorGame extends Game {
 
     @Override
     protected void endGame() {
-        System.out.println("Thank you for playing Legends of Valor.");
+        System.out.println(ANSI_RED + "\nGame Over. Thanks for playing Legends of Valor!" + ANSI_RESET);
+        if (party != null) {
+            System.out.println(ANSI_WHITE_BOLD + "Final Status:" + ANSI_RESET);
+            printDashboard();
+        }
     }
 }

@@ -1,5 +1,6 @@
 package items;
 
+import entities.Hero;
 import java.util.Arrays;
 import java.util.List;
 
@@ -7,9 +8,9 @@ import java.util.List;
  * Represents a single-use consumable potion.
  * Data derived from: Potions.txt
  */
-public class Potion extends Item {
-    private final double attributeIncrease;
-    private final List<String> attributesAffected;
+public abstract class Potion extends Item {
+    protected final double attributeIncrease;
+    protected final List<String> attributesAffected;
 
     public Potion(String name, double price, int minLevel, double attributeIncrease, String attributeString) {
         super(name, price, minLevel);
@@ -28,6 +29,8 @@ public class Potion extends Item {
         }
         return false;
     }
+
+    public abstract void apply(Hero hero);
 
     @Override
     public String toString() {
