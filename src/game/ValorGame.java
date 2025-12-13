@@ -8,6 +8,8 @@ import entities.Hero;
 import entities.Monster;
 import entities.Party;
 import items.Potion;
+import items.Spell;
+import items.Spell.SpellType;
 import utils.GameDataLoader;
 
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ public class ValorGame extends Game {
     private Party party;
     private List<Monster> activeMonsters;
     private List<Monster> monsterCatalog;
+    private MarketController marketController;
 
     private int roundCount;
     private boolean quitGame;
@@ -59,6 +62,7 @@ public class ValorGame extends Game {
         this.activeMonsters = new ArrayList<>();
         this.roundCount = 1;
         this.quitGame = false;
+        this.marketController = new MarketController();
 
         // 3. Setup Party
         setupParty(scanner);
@@ -163,19 +167,21 @@ public class ValorGame extends Game {
                 continue;
             }
 
-            System.out.println("\nTurn: " + ANSI_CYAN + hero.getName() + ANSI_RESET + " (Lane " + hero.getLane() + ")");
+            System.out.println("\nTurn: " + ANSI_CYAN + hero.getName() + " [H" + (hero.getLane() + 1) + "]" + ANSI_RESET + " (Lane " + hero.getLane() + ")");
             boolean actionTaken = false;
 
             while (!actionTaken && !quitGame) {
                 printControls();
 
-                String choice = InputValidator.getValidOption(scanner, "Action: ", "w", "a", "t", "r", "p", "e", "i", "q");
+                String choice = InputValidator.getValidOption(scanner, "Action: ", "w", "a", "c", "t", "r", "m", "p", "e", "i", "q");
 
                 switch (choice) {
                     case "w": actionTaken = handleMove(scanner, hero); break;
                     case "a": actionTaken = handleAttack(scanner, hero); break;
+                    case "c": actionTaken = handleCastSpell(scanner, hero); break;
                     case "t": actionTaken = handleTeleport(scanner, hero); break;
                     case "r": actionTaken = handleRecall(hero); break;
+                    case "m": actionTaken = handleMarket(scanner, hero); break;
                     case "p": actionTaken = handlePotion(scanner, hero); break;
                     case "e": actionTaken = handleEquip(scanner, hero); break;
                     case "i": System.out.println(hero); break;
@@ -201,8 +207,10 @@ public class ValorGame extends Game {
         System.out.print("CONTROLS: ");
         System.out.print("[" + ANSI_YELLOW + "W" + ANSI_RESET + "]Move ");
         System.out.print("[" + ANSI_YELLOW + "A" + ANSI_RESET + "]ttack ");
+        System.out.print("[" + ANSI_YELLOW + "C" + ANSI_RESET + "]ast ");
         System.out.print("[" + ANSI_YELLOW + "T" + ANSI_RESET + "]eleport ");
         System.out.print("[" + ANSI_YELLOW + "R" + ANSI_RESET + "]ecall ");
+        System.out.print("[" + ANSI_YELLOW + "M" + ANSI_RESET + "]arket ");
         System.out.print("[" + ANSI_YELLOW + "P" + ANSI_RESET + "]otion ");
         System.out.print("[" + ANSI_YELLOW + "E" + ANSI_RESET + "]quip ");
         System.out.print("[" + ANSI_YELLOW + "I" + ANSI_RESET + "]nfo ");
@@ -355,6 +363,100 @@ public class ValorGame extends Game {
         return true;
     }
 
+    private boolean handleCastSpell(Scanner scanner, Hero hero) {
+        List<Spell> spells = hero.getInventory().getSpells();
+        if (spells.isEmpty()) {
+            System.out.println(ANSI_YELLOW + "You have no spells!" + ANSI_RESET);
+            return false;
+        }
+
+        // Find targets in same range as attack (3x3 grid)
+        List<Monster> targets = new ArrayList<>();
+        for (int r = hero.getRow() - 1; r <= hero.getRow() + 1; r++) {
+            for (int c = hero.getCol() - 1; c <= hero.getCol() + 1; c++) {
+                if (board.isValidCoordinate(r, c) && board.getCell(r, c).hasMonster()) {
+                    targets.add(board.getCell(r, c).getMonster());
+                }
+            }
+        }
+
+        if (targets.isEmpty()) {
+            System.out.println(ANSI_YELLOW + "No monsters in range." + ANSI_RESET);
+            return false;
+        }
+
+        // Display spellbook
+        System.out.println(ANSI_PURPLE + "--- Spellbook ---" + ANSI_RESET);
+        for (int i = 0; i < spells.size(); i++) {
+            System.out.println((i + 1) + ". " + spells.get(i));
+        }
+        System.out.println((spells.size() + 1) + ". Cancel");
+
+        int spellChoice = InputValidator.getValidInt(scanner, ANSI_CYAN + "Select Spell: " + ANSI_RESET, 1, spells.size() + 1);
+        if (spellChoice == spells.size() + 1) return false;
+
+        Spell spell = spells.get(spellChoice - 1);
+        if (hero.getMana() < spell.getManaCost()) {
+            System.out.println(ANSI_RED + "Not enough Mana! Cost: " + spell.getManaCost() + " | Current: " + hero.getMana() + ANSI_RESET);
+            return false;
+        }
+
+        // Select target
+        System.out.println("Select Target:");
+        for (int i = 0; i < targets.size(); i++) {
+            System.out.println((i + 1) + ". " + targets.get(i));
+        }
+
+        int targetIdx = InputValidator.getValidInt(scanner, "Target: ", 1, targets.size()) - 1;
+        Monster target = targets.get(targetIdx);
+
+        // Deduct mana
+        hero.setMana(hero.getMana() - spell.getManaCost());
+
+        // Calculate damage with dexterity bonus
+        double damage = spell.getDamage() + ((hero.getDexterity() / 10000.0) * spell.getDamage());
+        
+        // Check dodge
+        if (Math.random() < target.getDodgeChance()) {
+            System.out.println(target.getName() + " DODGED the spell!");
+        } else {
+            target.setHp(target.getHp() - damage);
+            System.out.printf("%s casts %s on %s for " + ANSI_RED + "%.0f damage!" + ANSI_RESET + "\n", 
+                    hero.getName(), spell.getName(), target.getName(), damage);
+
+            // Apply spell effects if target survives
+            if (!target.isFainted()) {
+                if (spell.getType() == SpellType.ICE) {
+                    target.reduceDamage(target.getBaseDamage() * 0.1);
+                    System.out.println(ANSI_CYAN + target.getName() + "'s damage reduced by Ice!" + ANSI_RESET);
+                } else if (spell.getType() == SpellType.FIRE) {
+                    target.reduceDefense(target.getDefense() * 0.1);
+                    System.out.println(ANSI_RED + target.getName() + "'s defense melted by Fire!" + ANSI_RESET);
+                } else if (spell.getType() == SpellType.LIGHTNING) {
+                    target.reduceDodgeChance(target.getDodgeChance() * 0.1);
+                    System.out.println(ANSI_YELLOW + target.getName() + "'s dodge reduced by Lightning!" + ANSI_RESET);
+                }
+            }
+
+            // Check if target defeated
+            if (target.isFainted()) {
+                System.out.println(ANSI_GREEN + target.getName() + " was DEFEATED!" + ANSI_RESET);
+                board.getCell(target.getRow(), target.getCol()).removeMonster();
+                activeMonsters.remove(target);
+
+                double gold = 500 * target.getLevel();
+                int xp = 2 * target.getLevel();
+                hero.addMoney(gold);
+                hero.gainExperience(xp);
+                System.out.println("Gained " + gold + " gold and " + xp + " XP.");
+            }
+        }
+
+        // Remove spell from inventory after use
+        hero.getInventory().removeItem(spell);
+        return true;
+    }
+
     private boolean handleTeleport(Scanner scanner, Hero hero) {
         List<Hero> targets = new ArrayList<>();
         for (Hero h : party.getHeroes()) {
@@ -409,6 +511,28 @@ public class ValorGame extends Game {
         spawn.setHero(hero);
         System.out.println(ANSI_CYAN + hero.getName() + " recalled to Nexus." + ANSI_RESET);
         return true;
+    }
+
+    private boolean handleMarket(Scanner scanner, Hero hero) {
+        Cell currentCell = board.getCell(hero.getRow(), hero.getCol());
+        
+        // Check if hero is in a Nexus cell (row 7 is Hero Nexus)
+        if (currentCell.getType() != CellType.NEXUS) {
+            System.out.println(ANSI_RED + "Market unavailable: You must be in your Nexus to access the market!" + ANSI_RESET);
+            return false;
+        }
+        
+        System.out.println(ANSI_GREEN + hero.getName() + " enters the Nexus market..." + ANSI_RESET);
+        
+        // Use the overloaded single-hero market method
+        marketController.enterMarket(scanner, hero);
+        
+        // Redisplay the board and hero turn info after exiting market
+        board.printBoard();
+        System.out.println("\nTurn: " + ANSI_CYAN + hero.getName() + " [H" + (hero.getLane() + 1) + "]" + ANSI_RESET + " (Lane " + hero.getLane() + ")");
+        
+        // Market visit doesn't consume a turn
+        return false;
     }
 
     private boolean handlePotion(Scanner scanner, Hero hero) {

@@ -39,19 +39,19 @@ public class Cell {
 
     @Override
     public String toString() {
-        // MUST return exactly 3 visible characters to fit the board alignment
+        // MUST return exactly 4 visible characters to fit the board alignment
 
         if (hasHero() && hasMonster()) {
-            return ANSI_PURPLE + "H&M" + ANSI_RESET;
+            return ANSI_PURPLE + "H&M " + ANSI_RESET;
         } else if (hasHero()) {
-            // " H1" (Space + H + Number) = 3 chars
-            return ANSI_CYAN + " H" + (hero.getLane() + 1) + ANSI_RESET;
+            // "[H1]" = 4 chars
+            return ANSI_CYAN + "[H" + (hero.getLane() + 1) + "]" + ANSI_RESET;
         } else if (hasMonster()) {
-            // " M1" (Space + M + Number) = 3 chars
-            return ANSI_RED + " M" + (monster.getLane() + 1) + ANSI_RESET;
+            // "(M1)" = 4 chars
+            return ANSI_RED + "(M" + (monster.getLane() + 1) + ")" + ANSI_RESET;
         }
 
-        // Default types like " - ", " N ", " X " are already 3 chars
-        return type.getSymbol();
+        // Default types like " - ", " N ", " X " are 3 chars, add one space
+        return type.getSymbol() + " ";
     }
 }
