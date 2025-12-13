@@ -15,7 +15,7 @@ public class Monster extends RPGCharacter {
     private double defense;
     private double dodgeChance;
 
-    // --- NEW: Position Tracking for Valor ---
+    // Position Tracking for Valor
     private int row;
     private int col;
     private int lane;
@@ -30,6 +30,13 @@ public class Monster extends RPGCharacter {
 
         // Spec: HP = level * 100
         this.hp = level * 100;
+    }
+
+    // Implementation of Attack Abstraction
+    @Override
+    public double attack(RPGCharacter target) {
+        // Monster damage is primarily their base damage attribute
+        return this.baseDamage;
     }
 
     public MonsterType getType() {
@@ -61,7 +68,7 @@ public class Monster extends RPGCharacter {
         this.dodgeChance = Math.max(0, this.dodgeChance - amount);
     }
 
-    // --- NEW: Position Getters/Setters ---
+    // Position Getters/Setters
     public void setPosition(int row, int col) {
         this.row = row;
         this.col = col;

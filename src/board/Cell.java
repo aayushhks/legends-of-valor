@@ -4,7 +4,7 @@ import entities.Hero;
 import entities.Monster;
 
 public class Cell {
-    private final CellType type;
+    private CellType type; // Removed 'final' to allow modification (Obstacle -> Common)
     private Hero hero;
     private Monster monster;
 
@@ -19,6 +19,9 @@ public class Cell {
     }
 
     public CellType getType() { return type; }
+
+    // Setter for changing terrain (e.g., breaking Obstacles)
+    public void setType(CellType type) { this.type = type; }
 
     public void setHero(Hero hero) { this.hero = hero; }
     public Hero getHero() { return hero; }

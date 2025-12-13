@@ -24,11 +24,14 @@ public class ValorBoard extends Board {
                     grid[r][c] = new Cell(CellType.NEXUS);
                     continue;
                 }
+
+                // Adjusted Probabilities for Obstacles
                 double roll = random.nextDouble();
-                if (roll < 0.40) grid[r][c] = new Cell(CellType.COMMON);
-                else if (roll < 0.60) grid[r][c] = new Cell(CellType.BUSH);
-                else if (roll < 0.80) grid[r][c] = new Cell(CellType.CAVE);
-                else grid[r][c] = new Cell(CellType.KOULOU);
+                if (roll < 0.20) grid[r][c] = new Cell(CellType.COMMON);
+                else if (roll < 0.40) grid[r][c] = new Cell(CellType.BUSH);
+                else if (roll < 0.60) grid[r][c] = new Cell(CellType.CAVE);
+                else if (roll < 0.80) grid[r][c] = new Cell(CellType.KOULOU);
+                else grid[r][c] = new Cell(CellType.OBSTACLE); // 20% Chance
             }
         }
     }

@@ -14,7 +14,8 @@ public enum CellType {
     NEXUS(" N ", "\u001B[35m"),       // Purple (Base/Nexus)
     BUSH(" B ", "\u001B[32m"),        // Green (Dexterity Boost)
     CAVE(" C ", "\u001B[33m"),        // Yellow (Agility Boost)
-    KOULOU(" K ", "\u001B[34m");      // Blue (Strength Boost)
+    KOULOU(" K ", "\u001B[34m"),      // Blue (Strength Boost)
+    OBSTACLE(" O ", "\u001B[37;1m");  // White Bold (Obstacle)
 
     private final String symbol;
     private final String colorCode;
