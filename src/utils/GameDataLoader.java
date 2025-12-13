@@ -160,6 +160,7 @@ public class GameDataLoader {
         return armorList;
     }
 
+    // --- UPDATED METHOD FOR POTION FACTORY LOGIC ---
     public static List<Potion> loadPotions(String fileName) {
         List<Potion> potions = new ArrayList<>();
         File file = new File(DATA_DIR + File.separator + fileName);
@@ -175,13 +176,21 @@ public class GameDataLoader {
                     // Format: Name/cost/required level/attribute increase/attribute affected
                     if (parts.length < 5) continue;
 
-                    potions.add(new Potion(
-                            parts[0],                     // Name
-                            Double.parseDouble(parts[1]), // Cost
-                            Integer.parseInt(parts[2]),   // Min Level
-                            Double.parseDouble(parts[3]), // Increase Amount
-                            parts[4]                      // Attribute String
-                    ));
+                    String name = parts[0];
+                    double cost = Double.parseDouble(parts[1]);
+                    int lvl = Integer.parseInt(parts[2]);
+                    double val = Double.parseDouble(parts[3]);
+                    String attr = parts[4];
+
+                    // Factory Logic
+                    if (attr.equalsIgnoreCase("Health")) {
+                        potions.add(new HealingPotion(name, cost, lvl, val));
+                    } else if (attr.equalsIgnoreCase("Mana")) {
+                        potions.add(new ManaPotion(name, cost, lvl, val));
+                    } else {
+                        potions.add(new StatPotion(name, cost, lvl, val, attr));
+                    }
+
                 } catch (Exception e) {
                     logError(fileName, line);
                 }

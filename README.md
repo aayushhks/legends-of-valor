@@ -1,4 +1,4 @@
-# Legends: Monsters and Heroes & Valor Game
+# Legends of Valor
 
 A turn-based RPG strategy game where you lead a party of heroes through a dangerous world, battle monsters, trade in markets, and grow in power.
 

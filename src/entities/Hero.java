@@ -57,7 +57,15 @@ public class Hero extends RPGCharacter {
         this.hp = this.level * 100;
     }
 
-    // --- Positioning Logic for Valor ---
+    // Implementation of Attack Abstraction
+    @Override
+    public double attack(RPGCharacter target) {
+        double weaponDmg = (equippedWeapon != null) ? equippedWeapon.getDamage() : 0;
+        // Logic: (Strength + Weapon Damage) * 0.05
+        return (this.strength + weaponDmg) * 0.05;
+    }
+
+    // Positioning Logic for Valor
     public void setPosition(int row, int col) {
         this.row = row;
         this.col = col;
@@ -83,7 +91,6 @@ public class Hero extends RPGCharacter {
     private void levelUp() {
         this.level++;
         // Reset XP (or keep accumulated? Standard RPGs keep total, but rules imply a threshold)
-        // For this assignment, we reset the progress bar for the next level.
         this.experience = 0;
 
         // Spec Rule: When a hero levels up, this formula is used to reset their HP.

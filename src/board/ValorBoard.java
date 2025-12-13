@@ -2,20 +2,12 @@ package board;
 
 import java.util.Random;
 
-/**
- * The specialized board for "Legends of Valor".
- * Creates a fixed 8x8 grid with 3 lanes, non-traversable barriers, and special terrain.
- */
 public class ValorBoard extends Board {
     private final Cell[][] grid;
     private final Random random;
 
-    // ANSI Colors
-    private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_PURPLE = "\u001B[35m";
-
     public ValorBoard() {
-        super(8, 8); // Fixed 8x8 size
+        super(8, 8);
         this.grid = new Cell[8][8];
         this.random = new Random();
         initializeBoard();
@@ -24,30 +16,22 @@ public class ValorBoard extends Board {
     private void initializeBoard() {
         for (int r = 0; r < height; r++) {
             for (int c = 0; c < width; c++) {
-                // 1. Create Walls (Cols 2 and 5)
                 if (c == 2 || c == 5) {
                     grid[r][c] = new Cell(CellType.INACCESSIBLE);
                     continue;
                 }
-
-                // 2. Create Nexuses (Row 0 and Row 7)
                 if (r == 0 || r == 7) {
                     grid[r][c] = new Cell(CellType.NEXUS);
                     continue;
                 }
 
-                // 3. Create Random Terrain for the rest
-                // 40% Plain, 20% Bush, 20% Cave, 20% Koulou
+                // Adjusted Probabilities for Obstacles
                 double roll = random.nextDouble();
-                if (roll < 0.40) {
-                    grid[r][c] = new Cell(CellType.COMMON);
-                } else if (roll < 0.60) {
-                    grid[r][c] = new Cell(CellType.BUSH);
-                } else if (roll < 0.80) {
-                    grid[r][c] = new Cell(CellType.CAVE);
-                } else {
-                    grid[r][c] = new Cell(CellType.KOULOU);
-                }
+                if (roll < 0.20) grid[r][c] = new Cell(CellType.COMMON);
+                else if (roll < 0.40) grid[r][c] = new Cell(CellType.BUSH);
+                else if (roll < 0.60) grid[r][c] = new Cell(CellType.CAVE);
+                else if (roll < 0.80) grid[r][c] = new Cell(CellType.KOULOU);
+                else grid[r][c] = new Cell(CellType.OBSTACLE); // 20% Chance
             }
         }
     }
@@ -59,34 +43,17 @@ public class ValorBoard extends Board {
 
     @Override
     public void printBoard() {
-        // Standard width for a cell to align nicely
-        // Using +-------+ format (7 chars wide)
-
         System.out.println("\n   L-0     L-0     W-1     L-1     L-1     W-2     L-2     L-2   ");
         printHorizontalDivider();
 
         for (int r = 0; r < height; r++) {
-            // Row Content
-            System.out.print("|");
+            System.out.print("|"); // Start row
             for (int c = 0; c < width; c++) {
-                String cellStr = grid[r][c].toString();
-
-                // Formatting: The Cell.toString() returns specific widths based on content
-                // We strip ANSI codes for length calculation if necessary, but here we assume standard formatting.
-                // If Cell returns "| H1 |" (6 chars), we pad it.
-                // If Cell returns " - " (ANSI + 3 chars), we pad it differently.
-
-                // Simple centering logic:
-                if (cellStr.contains("|")) {
-                    // It's an occupant string like | H1 |
-                    System.out.print(cellStr + " |");
-                } else {
-                    // It's a terrain string like " - "
-                    System.out.print("  " + cellStr + "  |");
-                }
+                // Uniform padding for everyone
+                // "  " + 3-char-symbol + "  |" = 7 chars + border
+                System.out.print("  " + grid[r][c].toString() + "  |");
             }
-            System.out.println(); // End of row content
-
+            System.out.println(); // End row
             printHorizontalDivider();
         }
     }
