@@ -43,15 +43,14 @@ public class ValorBoard extends Board {
 
     @Override
     public void printBoard() {
-        System.out.println("\n   L-0     L-0     W-1     L-1     L-1     W-2     L-2     L-2   ");
+        System.out.println("\nL-0    L-0    W-1    L-1    L-1    W-2    L-2    L-2");
         printHorizontalDivider();
 
         for (int r = 0; r < height; r++) {
             System.out.print("|"); // Start row
             for (int c = 0; c < width; c++) {
-                // Uniform padding for everyone
-                // "  " + 3-char-symbol + "  |" = 7 chars + border
-                System.out.print("  " + grid[r][c].toString() + "  |");
+                // Uniform padding: " " + 4-char-symbol + " |"
+                System.out.print(" " + grid[r][c].toString() + " |");
             }
             System.out.println(); // End row
             printHorizontalDivider();
@@ -61,7 +60,7 @@ public class ValorBoard extends Board {
     private void printHorizontalDivider() {
         System.out.print("+");
         for (int c = 0; c < width; c++) {
-            System.out.print("-------+");
+            System.out.print("------+");
         }
         System.out.println();
     }

@@ -163,7 +163,7 @@ public class ValorGame extends Game {
                 continue;
             }
 
-            System.out.println("\nTurn: " + ANSI_CYAN + hero.getName() + ANSI_RESET + " (Lane " + hero.getLane() + ")");
+            System.out.println("\nTurn: " + ANSI_CYAN + hero.getName() + " [H" + (hero.getLane() + 1) + "]" + ANSI_RESET + " (Lane " + hero.getLane() + ")");
             boolean actionTaken = false;
 
             while (!actionTaken && !quitGame) {
