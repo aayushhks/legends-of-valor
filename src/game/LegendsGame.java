@@ -282,9 +282,9 @@ public class LegendsGame extends Game {
         Scanner scanner = new Scanner(System.in); // Use a fresh scanner or pass it down if possible
         // Note: System.in should not be closed if we want to read again, but here we are at end of app lifecycle usually.
 
-        String input = InputValidator.getValidOption(scanner, "\n" + ConsoleColors.YELLOW + "Do you want to play again? (y/n): " + ConsoleColors.RESET, "y", "n");
+        String input = InputValidator.getValidOption(scanner, "\n" + ConsoleColors.YELLOW + "Do you want to play again? (yes/no): " + ConsoleColors.RESET, "y", "yes", "n", "no");
 
-        if (input.equals("y")) {
+        if (input.equals("y") || input.equals("yes")) {
             // Restart the game
             System.out.println(ConsoleColors.GREEN + "Starting a new game..." + ConsoleColors.RESET);
 

@@ -68,41 +68,60 @@ public class ValorGame extends Game {
     private void setupParty(Scanner scanner) {
         this.party = new Party();
 
-        List<Hero> availableHeroes = new ArrayList<>();
-        availableHeroes.addAll(GameDataLoader.loadHeroes("Warriors.txt", Hero.HeroType.WARRIOR));
-        availableHeroes.addAll(GameDataLoader.loadHeroes("Sorcerers.txt", Hero.HeroType.SORCERER));
-        availableHeroes.addAll(GameDataLoader.loadHeroes("Paladins.txt", Hero.HeroType.PALADIN));
+        // Load heroes by class
+        List<Hero> availableWarriors = GameDataLoader.loadHeroes("Warriors.txt", Hero.HeroType.WARRIOR);
+        List<Hero> availableSorcerers = GameDataLoader.loadHeroes("Sorcerers.txt", Hero.HeroType.SORCERER);
+        List<Hero> availablePaladins = GameDataLoader.loadHeroes("Paladins.txt", Hero.HeroType.PALADIN);
 
         System.out.println("\n" + ConsoleColors.YELLOW + "=== RECRUIT YOUR TEAM ===" + ConsoleColors.RESET);
         System.out.println("You must select 3 Heroes to defend the Nexus.");
 
         while (party.getHeroes().size() < 3) {
             System.out.println("\n" + ConsoleColors.WHITE_BOLD + "Party Size: " + party.getHeroes().size() + "/3" + ConsoleColors.RESET);
-
-            // TABLE HEADER
-            System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
-            System.out.printf(ConsoleColors.CYAN + "| %-2s | %-20s | %-9s | %-3s | %-4s | %-4s | %-4s | %-4s | %-4s |%n" + ConsoleColors.RESET,
-                    "ID", "Name", "Class", "Lvl", "HP", "MP", "Str", "Dex", "Agi");
-            System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
-
-            // TABLE ROWS
-            for (int i = 0; i < availableHeroes.size(); i++) {
-                Hero h = availableHeroes.get(i);
-                System.out.printf("| %-2d | %-20s | %-9s | %-3d | %-4.0f | %-4.0f | %-4.0f | %-4.0f | %-4.0f |%n",
-                        (i + 1), h.getName(), h.getType(), h.getLevel(), h.getHp(), h.getMana(),
-                        h.getStrength(), h.getDexterity(), h.getAgility());
+            
+            System.out.println("\nSelect Hero #" + (party.getHeroes().size() + 1) + ":");
+            Hero selectedHero = selectHeroByClass(scanner, availableWarriors, availableSorcerers, availablePaladins);
+            if (selectedHero == null) {
+                return; // User quit
             }
-            System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
-
-            int choice = InputValidator.getValidInt(scanner, "Select Hero ID: ", 1, availableHeroes.size());
-            Hero selected = availableHeroes.remove(choice - 1);
 
             // Assign a unique lane to each hero as they are picked (0, 1, or 2)
-            selected.setLane(party.getHeroes().size());
-            party.addHero(selected);
+            selectedHero.setLane(party.getHeroes().size());
+            party.addHero(selectedHero);
 
-            System.out.println(ConsoleColors.GREEN + selected.getName() + " joined the party!" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.GREEN + selectedHero.getName() + " joined the party!" + ConsoleColors.RESET);
         }
+    }
+
+    private Hero selectHeroByClass(Scanner scanner, List<Hero> warriors, List<Hero> sorcerers, List<Hero> paladins) {
+        System.out.println("1. " + ConsoleColors.RED + "Warrior" + ConsoleColors.RESET + " (Favors Strength/Agility)");
+        System.out.println("2. " + ConsoleColors.BLUE + "Sorcerer" + ConsoleColors.RESET + " (Favors Dexterity/Agility)");
+        System.out.println("3. " + ConsoleColors.GREEN + "Paladin" + ConsoleColors.RESET + " (Favors Strength/Dexterity)");
+
+        int typeChoice = InputValidator.getValidInt(scanner, "Choose class: ", 1, 3);
+        List<Hero> choiceList = (typeChoice == 1) ? warriors :
+                (typeChoice == 2) ? sorcerers : paladins;
+
+        if (choiceList.isEmpty()) {
+            System.out.println(ConsoleColors.RED + "No heroes available for that class!" + ConsoleColors.RESET);
+            return selectHeroByClass(scanner, warriors, sorcerers, paladins);
+        }
+
+        System.out.println("\n" + ConsoleColors.WHITE_BOLD + "Available Heroes:" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
+        System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-2s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-3s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4s " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
+                "ID", "NAME", "LVL", "HP", "MP", "STR", "DEX", "AGI");
+        System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
+
+        for (int i = 0; i < choiceList.size(); i++) {
+            Hero h = choiceList.get(i);
+            System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-2d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-3d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4.0f " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4.0f " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4.0f " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4.0f " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4.0f " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
+                    (i + 1), h.getName(), h.getLevel(), h.getHp(), h.getMana(), h.getStrength(), h.getDexterity(), h.getAgility());
+        }
+        System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
+
+        int heroIndex = InputValidator.getValidInt(scanner, "Select hero ID: ", 1, choiceList.size()) - 1;
+        return choiceList.remove(heroIndex);
     }
 
     private void spawnHeroes() {
@@ -174,7 +193,7 @@ public class ValorGame extends Game {
                     case "m": actionTaken = handleMarket(scanner, hero); break;
                     case "p": actionTaken = handlePotion(scanner, hero); break;
                     case "e": actionTaken = handleEquip(scanner, hero); break;
-                    case "i": System.out.println(hero); break;
+                    case "i": showDetailedHeroInfo(hero); break;
                     case "q": quitGame = true; return;
                 }
             }
@@ -528,7 +547,7 @@ public class ValorGame extends Game {
     private boolean handlePotion(Scanner scanner, Hero hero) {
         List<Potion> potions = hero.getInventory().getPotions();
         if (potions.isEmpty()) {
-            System.out.println("No potions!");
+            System.out.println(ConsoleColors.RED + "No potions!\n" + ConsoleColors.RESET);
             return false;
         }
         System.out.println("Select Potion:");
@@ -547,13 +566,13 @@ public class ValorGame extends Game {
         int type = InputValidator.getValidInt(scanner, "Type: ", 1, 2);
         if (type == 1) {
             List<items.Weapon> weps = hero.getInventory().getWeapons();
-            if (weps.isEmpty()) { System.out.println("No weapons."); return false; }
+            if (weps.isEmpty()) { System.out.println(ConsoleColors.RED + "No weapons.\n" + ConsoleColors.RESET); return false; }
             for (int i = 0; i < weps.size(); i++) System.out.println((i + 1) + ". " + weps.get(i).getName());
             int c = InputValidator.getValidInt(scanner, "Equip: ", 1, weps.size()) - 1;
             hero.equipWeapon(weps.get(c));
         } else {
             List<items.Armor> arms = hero.getInventory().getArmor();
-            if (arms.isEmpty()) { System.out.println("No armor."); return false; }
+            if (arms.isEmpty()) { System.out.println(ConsoleColors.RED + "No armor.\n" + ConsoleColors.RESET); return false; }
             for (int i = 0; i < arms.size(); i++) System.out.println((i + 1) + ". " + arms.get(i).getName());
             int c = InputValidator.getValidInt(scanner, "Equip: ", 1, arms.size()) - 1;
             hero.equipArmor(arms.get(c));
@@ -633,6 +652,72 @@ public class ValorGame extends Game {
     @Override
     protected boolean shouldQuit() { return quitGame; }
 
+    private void showDetailedHeroInfo(Hero hero) {
+        System.out.println("\n" + ConsoleColors.WHITE_BOLD + "=== HERO INFORMATION ===" + ConsoleColors.RESET);
+        
+        System.out.println("\n" + ConsoleColors.PURPLE + String.format("[%s] %s (Lvl %d) - Lane %d", 
+                hero.getType(), hero.getName(), hero.getLevel(), hero.getLane() + 1) + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.CYAN + "Position: (" + hero.getRow() + ", " + hero.getCol() + ")" + ConsoleColors.RESET);
+
+        System.out.println(ConsoleColors.CYAN + "\n+----------+----------+----------+----------+----------+------------+------------+" + ConsoleColors.RESET);
+        System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " HP: " + ConsoleColors.GREEN + "%-5.0f" + ConsoleColors.RESET + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " MP: " + ConsoleColors.BLUE + "%-5.0f" + ConsoleColors.RESET + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " STR: %-4.0f" + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " DEX: %-4.0f" + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " AGI: %-4.0f" + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " GOLD: " + ConsoleColors.YELLOW + "%-5.0f" + ConsoleColors.RESET + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " XP: %-5d " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
+                hero.getHp(), hero.getMana(), hero.getStrength(), hero.getDexterity(), hero.getAgility(), hero.getMoney(), hero.getExperience());
+        System.out.println(ConsoleColors.CYAN + "+----------+----------+----------+----------+----------+------------+------------+" + ConsoleColors.RESET);
+
+        // Equipment section
+        System.out.println(ConsoleColors.CYAN + "\n" + ConsoleColors.WHITE_BOLD + "EQUIPPED:" + ConsoleColors.RESET);
+        if (hero.getEquippedWeapon() != null) {
+            System.out.println("> Weapon: " + ConsoleColors.RED + hero.getEquippedWeapon().getName() + ConsoleColors.RESET + 
+                    " (Dmg: +" + hero.getEquippedWeapon().getDamage() + ")");
+        } else {
+            System.out.println("> Weapon: " + ConsoleColors.YELLOW + "None" + ConsoleColors.RESET);
+        }
+        
+        if (hero.getEquippedArmor() != null) {
+            System.out.println("> Armor: " + ConsoleColors.BLUE + hero.getEquippedArmor().getName() + ConsoleColors.RESET + 
+                    " (Def: +" + hero.getEquippedArmor().getDamageReduction() + ")");
+        } else {
+            System.out.println("> Armor: " + ConsoleColors.YELLOW + "None" + ConsoleColors.RESET);
+        }
+
+        // Inventory section
+        System.out.println(ConsoleColors.CYAN + "\n" + ConsoleColors.WHITE_BOLD + "INVENTORY:" + ConsoleColors.RESET);
+        
+        List<items.Item> items = hero.getInventory().getItems();
+        if (items.isEmpty()) {
+            System.out.println(ConsoleColors.YELLOW + "  (Empty)" + ConsoleColors.RESET);
+        } else {
+            System.out.println(ConsoleColors.CYAN + "+----------------------+--------+----------+--------------------------------------+" + ConsoleColors.RESET);
+            for (items.Item item : items) {
+                String stats = extractItemStats(item);
+                if (stats.length() > 36) stats = stats.substring(0, 33) + "...";
+
+                System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " Lv%-4d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " " + ConsoleColors.YELLOW + "%-8.0f" + ConsoleColors.RESET + " " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-36s " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
+                        item.getName(), item.getMinLevel(), item.getPrice(), stats);
+            }
+            System.out.println(ConsoleColors.CYAN + "+----------------------+--------+----------+--------------------------------------+" + ConsoleColors.RESET);
+        }
+        
+        System.out.println("\n" + ConsoleColors.YELLOW + "Press Enter to continue..." + ConsoleColors.RESET);
+        Scanner scanner = new Scanner(System.in);
+        scanner.nextLine();
+    }
+
+    private String extractItemStats(items.Item item) {
+        if (item instanceof items.Weapon) {
+            return String.format("Dmg: %.0f", ((items.Weapon) item).getDamage());
+        } else if (item instanceof items.Armor) {
+            return String.format("Def: %.0f", ((items.Armor) item).getDamageReduction());
+        } else if (item instanceof items.Spell) {
+            items.Spell s = (items.Spell) item;
+            return String.format("%s Spell (Dmg: %.0f, Cost: %.0f)", s.getType(), s.getDamage(), s.getManaCost());
+        } else if (item instanceof items.Potion) {
+            items.Potion p = (items.Potion) item;
+            return String.format("Potion (+%.0f)", p.getAttributeIncrease());
+        }
+        return "Item";
+    }
+
     @Override
     protected void endGame() {
         System.out.println(ConsoleColors.RED + "\nGame Over. Thanks for playing Legends of Valor!" + ConsoleColors.RESET);
@@ -642,9 +727,9 @@ public class ValorGame extends Game {
         }
         
         Scanner scanner = new Scanner(System.in);
-        String input = InputValidator.getValidOption(scanner, "\n" + ConsoleColors.YELLOW + "Do you want to play again? (y/n): " + ConsoleColors.RESET, "y", "n");
+        String input = InputValidator.getValidOption(scanner, "\n" + ConsoleColors.YELLOW + "Do you want to play again? (yes/no): " + ConsoleColors.RESET, "y", "yes", "n", "no");
         
-        if (input.equals("y")) {
+        if (input.equals("y") || input.equals("yes")) {
             common.GameRunner.run();
         } else {
             System.exit(0);
