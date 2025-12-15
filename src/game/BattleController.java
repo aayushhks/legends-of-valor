@@ -1,6 +1,7 @@
 package game;
 
 import utils.ConsoleColors;
+import utils.GameDataLoader;
 import common.InputValidator;
 import common.RandomGenerator;
 import entities.Hero;
@@ -74,14 +75,7 @@ public class BattleController {
         for (int i = 0; i < partySize; i++) {
             Monster template = monsterCatalog.get(rng.nextInt(monsterCatalog.size()));
 
-            Monster monster = new Monster(
-                    template.getName(),
-                    template.getType(),
-                    targetLevel,
-                    template.getBaseDamage() * (targetLevel / (double)Math.max(1, template.getLevel())),
-                    template.getDefense() * (targetLevel / (double)Math.max(1, template.getLevel())),
-                    template.getDodgeChance() * 100
-            );
+            Monster monster = GameDataLoader.createMonsterFromTemplate(template, targetLevel);
             enemies.add(monster);
         }
         return enemies;

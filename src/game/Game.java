@@ -27,7 +27,6 @@ public abstract class Game {
         while (isRunning) {
             // Check for game over conditions before the turn
             if (isGameOver()) {
-                System.out.println("Game Over Condition Met.");
                 break;
             }
 

@@ -1,8 +1,7 @@
 package utils;
 
-import entities.Hero;
+import entities.*;
 import entities.Hero.HeroType;
-import entities.Monster;
 import entities.Monster.MonsterType;
 import items.*;
 import items.Spell.SpellType;
@@ -42,15 +41,16 @@ public class GameDataLoader {
                     // Format: Name/mana/strength/agility/dexterity/starting money/starting experience
                     if (parts.length < 7) continue;
 
-                    heroes.add(new Hero(
-                            parts[0], type,
+                    Hero hero = createHero(parts[0], type,
+                            Double.parseDouble(parts[1]), // Mana as HP
                             Double.parseDouble(parts[1]), // Mana
                             Double.parseDouble(parts[2]), // Str
-                            Double.parseDouble(parts[3]), // Agi
                             Double.parseDouble(parts[4]), // Dex
+                            Double.parseDouble(parts[3]), // Agi
                             Double.parseDouble(parts[5]), // Money
                             Integer.parseInt(parts[6])    // XP
-                    ));
+                    );
+                    if (hero != null) heroes.add(hero);
                 } catch (Exception e) {
                     logError(fileName, line);
                 }
@@ -79,13 +79,14 @@ public class GameDataLoader {
                     // Format: Name/level/damage/defense/dodge chance
                     if (parts.length < 5) continue;
 
-                    monsters.add(new Monster(
-                            parts[0], type,
+                    Monster monster = createMonster(parts[0], type,
                             Integer.parseInt(parts[1]),   // Level
+                            Integer.parseInt(parts[1]) * 100.0, // HP = level * 100
                             Double.parseDouble(parts[2]), // Damage
                             Double.parseDouble(parts[3]), // Defense
                             Double.parseDouble(parts[4])  // Dodge
-                    ));
+                    );
+                    if (monster != null) monsters.add(monster);
                 } catch (Exception e) {
                     logError(fileName, line);
                 }
@@ -216,14 +217,13 @@ public class GameDataLoader {
                     // Format: Name/cost/required level/damage/mana cost
                     if (parts.length < 5) continue;
 
-                    spells.add(new Spell(
-                            parts[0],                     // Name
+                    Spell spell = createSpell(parts[0], type,
                             Double.parseDouble(parts[1]), // Cost
                             Integer.parseInt(parts[2]),   // Min Level
                             Double.parseDouble(parts[3]), // Damage
-                            Double.parseDouble(parts[4]), // Mana Cost
-                            type
-                    ));
+                            Double.parseDouble(parts[4])  // Mana Cost
+                    );
+                    if (spell != null) spells.add(spell);
                 } catch (Exception e) {
                     logError(fileName, line);
                 }
@@ -241,5 +241,66 @@ public class GameDataLoader {
 
     private static void logError(String fileName, String line) {
         System.err.println("Skipping malformed line in " + fileName + ": " + line);
+    }
+
+    // Factory method to create specific hero subclasses
+    private static Hero createHero(String name, HeroType type, double hp, double mp, 
+                                  double strength, double dexterity, double agility, 
+                                  double money, int experience) {
+        switch (type) {
+            case WARRIOR:
+                return new Warrior(name, hp, mp, strength, dexterity, agility, money, experience);
+            case SORCERER:
+                return new Sorcerer(name, hp, mp, strength, dexterity, agility, money, experience);
+            case PALADIN:
+                return new Paladin(name, hp, mp, strength, dexterity, agility, money, experience);
+            default:
+                return null;
+        }
+    }
+
+    // Factory method to create specific monster subclasses
+    private static Monster createMonster(String name, MonsterType type, int level, 
+                                        double hp, double baseDamage, double defense, 
+                                        double dodgeChance) {
+        switch (type) {
+            case DRAGON:
+                return new Dragon(name, level, hp, baseDamage, defense, dodgeChance);
+            case EXOSKELETON:
+                return new Exoskeleton(name, level, hp, baseDamage, defense, dodgeChance);
+            case SPIRIT:
+                return new Spirit(name, level, hp, baseDamage, defense, dodgeChance);
+            default:
+                return null;
+        }
+    }
+
+    // Public factory method for runtime monster creation
+    public static Monster createMonsterFromTemplate(Monster template, int level) {
+        double levelMultiplier = level / (double)Math.max(1, template.getLevel());
+        return createMonster(
+            template.getName(),
+            template.getType(), 
+            level,
+            level * 100.0, // HP = level * 100
+            template.getBaseDamage() * levelMultiplier,
+            template.getDefense() * levelMultiplier,
+            template.getDodgeChance() * 100
+        );
+    }
+
+    // Factory method to create specific spell subclasses
+    private static Spell createSpell(String name, SpellType type, double price, 
+                                    int minLevel, double damage, double manaCost) {
+        switch (type) {
+            case FIRE:
+                return new FireSpell(name, price, minLevel, damage, manaCost);
+            case ICE:
+                return new IceSpell(name, price, minLevel, damage, manaCost);
+            case LIGHTNING:
+                return new LightningSpell(name, price, minLevel, damage, manaCost);
+            default:
+                return null;
+        }
     }
 }

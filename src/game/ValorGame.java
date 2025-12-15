@@ -135,8 +135,7 @@ public class ValorGame extends Game {
             }
 
             Monster template = monsterCatalog.get((int) (Math.random() * monsterCatalog.size()));
-            Monster m = new Monster(template.getName(), template.getType(), highestHeroLvl,
-                    template.getBaseDamage(), template.getDefense(), template.getDodgeChance() * 100);
+            Monster m = GameDataLoader.createMonsterFromTemplate(template, highestHeroLvl);
 
             m.setPosition(0, laneSpawns[i]);
             m.setLane(i);

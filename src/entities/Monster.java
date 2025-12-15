@@ -31,6 +31,16 @@ public class Monster extends RPGCharacter {
         // Spec: HP = level * 100
         this.hp = level * 100;
     }
+    
+    // Constructor with explicit HP for subclasses
+    public Monster(String name, int level, double hp, double baseDamage, double defense, double dodgeChance, MonsterType type) {
+        super(name, level);
+        this.type = type;
+        this.baseDamage = baseDamage;
+        this.defense = defense;
+        this.dodgeChance = dodgeChance;
+        this.hp = hp;
+    }
 
     // Implementation of Attack Abstraction
     @Override

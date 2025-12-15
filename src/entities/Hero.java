@@ -56,6 +56,22 @@ public class Hero extends RPGCharacter {
         // HP of heroes = level * 100
         this.hp = this.level * 100;
     }
+    
+    // Constructor for subclasses with explicit parameters
+    protected Hero(String name, double hp, double mp, double strength, double dexterity, double agility, double money, int experience, HeroType type) {
+        super(name, 1); // Default to Level 1 initially
+        
+        this.type = type;
+        this.hp = hp;
+        this.mana = mp;
+        this.strength = strength;
+        this.dexterity = dexterity;
+        this.agility = agility;
+        this.money = money;
+        this.experience = experience;
+        
+        this.inventory = new Inventory();
+    }
 
     // Implementation of Attack Abstraction
     @Override
