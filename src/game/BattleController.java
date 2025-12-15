@@ -1,5 +1,6 @@
 package game;
 
+import utils.ConsoleColors;
 import common.InputValidator;
 import common.RandomGenerator;
 import entities.Hero;
@@ -22,15 +23,6 @@ public class BattleController {
     private final List<Monster> monsterCatalog;
     private final RandomGenerator rng;
 
-    // ANSI Colors
-    private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_RED = "\u001B[31m";
-    private static final String ANSI_GREEN = "\u001B[32m";
-    private static final String ANSI_YELLOW = "\u001B[33m";
-    private static final String ANSI_CYAN = "\u001B[36m";
-    private static final String ANSI_PURPLE = "\u001B[35m";
-    private static final String ANSI_WHITE_BOLD = "\033[1;37m";
-
     public BattleController(List<Monster> monsterCatalog) {
         this.monsterCatalog = monsterCatalog;
         this.rng = RandomGenerator.getInstance();
@@ -38,14 +30,14 @@ public class BattleController {
 
     public void startBattle(Scanner scanner, Party party) {
         List<Monster> enemies = spawnMonsters(party);
-        System.out.println(ANSI_RED + "\n*** Battle Started! Enemies approaching: ***" + ANSI_RESET);
+        System.out.println(ConsoleColors.RED + "\n*** Battle Started! Enemies approaching: ***" + ConsoleColors.RESET);
         for (Monster m : enemies) System.out.println("- " + m);
 
         int round = 1;
         boolean battleActive = true;
 
         while (battleActive) {
-            System.out.println("\n" + ANSI_YELLOW + "=== Round " + round + " ===" + ANSI_RESET);
+            System.out.println("\n" + ConsoleColors.YELLOW + "=== Round " + round + " ===" + ConsoleColors.RESET);
 
             if (!processHeroesTurn(scanner, party, enemies)) {
                 battleActive = false;
@@ -61,7 +53,7 @@ public class BattleController {
             processMonstersTurn(party, enemies);
 
             if (party.isPartyWipedOut()) {
-                System.out.println(ANSI_RED + "The party has been defeated!" + ANSI_RESET);
+                System.out.println(ConsoleColors.RED + "The party has been defeated!" + ConsoleColors.RESET);
                 battleActive = false;
                 break;
             }
@@ -100,7 +92,7 @@ public class BattleController {
             if (hero.isFainted()) continue;
             if (enemies.stream().allMatch(Monster::isFainted)) break;
 
-            System.out.println("\nIt is " + ANSI_PURPLE + hero.getName() + ANSI_RESET + "'s turn.");
+            System.out.println("\nIt is " + ConsoleColors.PURPLE + hero.getName() + ConsoleColors.RESET + "'s turn.");
             System.out.println(hero);
 
             boolean actionTaken = false;
@@ -112,7 +104,7 @@ public class BattleController {
                 System.out.println("5. Info");
                 System.out.println("6. Quit Game");
 
-                int choice = InputValidator.getValidInt(scanner, ANSI_CYAN + "Action: " + ANSI_RESET, 1, 6);
+                int choice = InputValidator.getValidInt(scanner, ConsoleColors.CYAN + "Action: " + ConsoleColors.RESET, 1, 6);
                 switch (choice) {
                     case 1: actionTaken = performAttack(scanner, hero, enemies); break;
                     case 2: actionTaken = performSpell(scanner, hero, enemies); break;
@@ -120,7 +112,7 @@ public class BattleController {
                     case 4: performEquip(scanner, hero); break;
                     case 5: showBattleInfo(party, enemies); break;
                     case 6:
-                        System.out.println(ANSI_RED + "Quitting Game..." + ANSI_RESET);
+                        System.out.println(ConsoleColors.RED + "Quitting Game..." + ConsoleColors.RESET);
                         System.exit(0);
                         return false;
                 }
@@ -147,9 +139,9 @@ public class BattleController {
         double actualDamage = Math.max(0, rawDamage - (target.getDefense() * 0.05));
 
         target.setHp(target.getHp() - actualDamage);
-        System.out.printf("%s attacks %s for " + ANSI_RED + "%.0f damage!" + ANSI_RESET + "\n", hero.getName(), target.getName(), actualDamage);
+        System.out.printf("%s attacks %s for " + ConsoleColors.RED + "%.0f damage!" + ConsoleColors.RESET + "\n", hero.getName(), target.getName(), actualDamage);
 
-        if (target.isFainted()) System.out.println(ANSI_GREEN + target.getName() + " has been defeated!" + ANSI_RESET);
+        if (target.isFainted()) System.out.println(ConsoleColors.GREEN + target.getName() + " has been defeated!" + ConsoleColors.RESET);
 
         return true;
     }
@@ -157,22 +149,22 @@ public class BattleController {
     private boolean performSpell(Scanner scanner, Hero hero, List<Monster> enemies) {
         List<Spell> spells = hero.getInventory().getSpells();
         if (spells.isEmpty()) {
-            System.out.println(ANSI_YELLOW + "You have no spells!" + ANSI_RESET);
+            System.out.println(ConsoleColors.YELLOW + "You have no spells!" + ConsoleColors.RESET);
             return false;
         }
 
-        System.out.println(ANSI_WHITE_BOLD + "--- Spellbook ---" + ANSI_RESET);
+        System.out.println(ConsoleColors.WHITE_BOLD + "--- Spellbook ---" + ConsoleColors.RESET);
         for (int i = 0; i < spells.size(); i++) {
             System.out.println((i + 1) + ". " + spells.get(i));
         }
         System.out.println((spells.size() + 1) + ". Cancel");
 
-        int choice = InputValidator.getValidInt(scanner, ANSI_CYAN + "Select Spell: " + ANSI_RESET, 1, spells.size() + 1);
+        int choice = InputValidator.getValidInt(scanner, ConsoleColors.CYAN + "Select Spell: " + ConsoleColors.RESET, 1, spells.size() + 1);
         if (choice == spells.size() + 1) return false;
 
         Spell spell = spells.get(choice - 1);
         if (hero.getMana() < spell.getManaCost()) {
-            System.out.println(ANSI_RED + "Not enough Mana!" + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "Not enough Mana!" + ConsoleColors.RESET);
             return false;
         }
 
@@ -197,7 +189,7 @@ public class BattleController {
             }
         }
 
-        System.out.printf("%s casts %s on %s for " + ANSI_RED + "%.0f damage!" + ANSI_RESET + "\n", hero.getName(), spell.getName(), target.getName(), damage);
+        System.out.printf("%s casts %s on %s for " + ConsoleColors.RED + "%.0f damage!" + ConsoleColors.RESET + "\n", hero.getName(), spell.getName(), target.getName(), damage);
         hero.getInventory().removeItem(spell);
         return true;
     }
@@ -205,14 +197,14 @@ public class BattleController {
     private boolean performPotion(Scanner scanner, Hero hero) {
         List<Potion> potions = hero.getInventory().getPotions();
         if (potions.isEmpty()) {
-            System.out.println(ANSI_YELLOW + "No potions in inventory." + ANSI_RESET);
+            System.out.println(ConsoleColors.YELLOW + "No potions in inventory." + ConsoleColors.RESET);
             return false;
         }
 
-        System.out.println(ANSI_WHITE_BOLD + "--- Potions ---" + ANSI_RESET);
+        System.out.println(ConsoleColors.WHITE_BOLD + "--- Potions ---" + ConsoleColors.RESET);
         for(int i=0; i<potions.size(); i++) System.out.println((i+1) + ". " + potions.get(i));
 
-        int choice = InputValidator.getValidInt(scanner, ANSI_CYAN + "Use Potion: " + ANSI_RESET, 1, potions.size());
+        int choice = InputValidator.getValidInt(scanner, ConsoleColors.CYAN + "Use Potion: " + ConsoleColors.RESET, 1, potions.size());
         Potion potion = potions.get(choice - 1);
 
         double val = potion.getAttributeIncrease();
@@ -222,7 +214,7 @@ public class BattleController {
         if (potion.affects("Dexterity")) hero.setDexterity(hero.getDexterity() + val);
         if (potion.affects("Agility")) hero.setAgility(hero.getAgility() + val);
 
-        System.out.println(ANSI_GREEN + hero.getName() + " used " + potion.getName() + "!" + ANSI_RESET);
+        System.out.println(ConsoleColors.GREEN + hero.getName() + " used " + potion.getName() + "!" + ConsoleColors.RESET);
         hero.getInventory().removeItem(potion);
         return true;
     }
@@ -230,17 +222,17 @@ public class BattleController {
     private void performEquip(Scanner scanner, Hero hero) {
         System.out.println("1. Weapons");
         System.out.println("2. Armor");
-        int type = InputValidator.getValidInt(scanner, ANSI_CYAN + "Type: " + ANSI_RESET, 1, 2);
+        int type = InputValidator.getValidInt(scanner, ConsoleColors.CYAN + "Type: " + ConsoleColors.RESET, 1, 2);
 
         if (type == 1) {
             List<Weapon> weps = hero.getInventory().getWeapons();
-            if (weps.isEmpty()) { System.out.println(ANSI_YELLOW + "No weapons." + ANSI_RESET); return; }
+            if (weps.isEmpty()) { System.out.println(ConsoleColors.YELLOW + "No weapons." + ConsoleColors.RESET); return; }
             for(int i=0; i<weps.size(); i++) System.out.println((i+1) + ". " + weps.get(i));
             int sel = InputValidator.getValidInt(scanner, "Equip: ", 1, weps.size());
             hero.equipWeapon(weps.get(sel-1));
         } else {
             List<Armor> arms = hero.getInventory().getArmor();
-            if (arms.isEmpty()) { System.out.println(ANSI_YELLOW + "No armor." + ANSI_RESET); return; }
+            if (arms.isEmpty()) { System.out.println(ConsoleColors.YELLOW + "No armor." + ConsoleColors.RESET); return; }
             for(int i=0; i<arms.size(); i++) System.out.println((i+1) + ". " + arms.get(i));
             int sel = InputValidator.getValidInt(scanner, "Equip: ", 1, arms.size());
             hero.equipArmor(arms.get(sel-1));
@@ -273,10 +265,10 @@ public class BattleController {
             double finalDmg = Math.max(0, rawDmg - (mitigation * 0.2));
 
             target.setHp(target.getHp() - finalDmg);
-            System.out.printf("%s attacks %s for " + ANSI_RED + "%.0f damage!" + ANSI_RESET + "\n", monster.getName(), target.getName(), finalDmg);
+            System.out.printf("%s attacks %s for " + ConsoleColors.RED + "%.0f damage!" + ConsoleColors.RESET + "\n", monster.getName(), target.getName(), finalDmg);
 
             if (target.isFainted()) {
-                System.out.println(ANSI_RED + target.getName() + " has fainted!" + ANSI_RESET);
+                System.out.println(ConsoleColors.RED + target.getName() + " has fainted!" + ConsoleColors.RESET);
             }
         }
     }
@@ -288,11 +280,11 @@ public class BattleController {
                 h.setMana(h.getMana() * 1.1);
             }
         }
-        System.out.println(ANSI_CYAN + "Heroes regain some health and mana." + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "Heroes regain some health and mana." + ConsoleColors.RESET);
     }
 
     private void processVictory(Party party, List<Monster> enemies) {
-        System.out.println(ANSI_GREEN + "\n*** VICTORY! ***" + ANSI_RESET);
+        System.out.println(ConsoleColors.GREEN + "\n*** VICTORY! ***" + ConsoleColors.RESET);
         double goldReward = enemies.stream().mapToDouble(Monster::getLevel).sum() * 100;
         int xpReward = enemies.size() * 2;
 
@@ -313,19 +305,19 @@ public class BattleController {
         List<Monster> alive = enemies.stream().filter(m -> !m.isFainted()).collect(Collectors.toList());
         if (alive.isEmpty()) return null;
 
-        System.out.println(ANSI_CYAN + "Select Target:" + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "Select Target:" + ConsoleColors.RESET);
         for(int i=0; i<alive.size(); i++) {
             System.out.println((i+1) + ". " + alive.get(i));
         }
-        int choice = InputValidator.getValidInt(scanner, ANSI_CYAN + "Target: " + ANSI_RESET, 1, alive.size());
+        int choice = InputValidator.getValidInt(scanner, ConsoleColors.CYAN + "Target: " + ConsoleColors.RESET, 1, alive.size());
         return alive.get(choice - 1);
     }
 
     private void showBattleInfo(Party party, List<Monster> enemies) {
-        System.out.println("\n" + ANSI_WHITE_BOLD + "--- Battle Status ---" + ANSI_RESET);
-        System.out.println(ANSI_PURPLE + "HEROES:" + ANSI_RESET);
+        System.out.println("\n" + ConsoleColors.WHITE_BOLD + "--- Battle Status ---" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.PURPLE + "HEROES:" + ConsoleColors.RESET);
         party.getHeroes().forEach(System.out::println);
-        System.out.println(ANSI_RED + "MONSTERS:" + ANSI_RESET);
+        System.out.println(ConsoleColors.RED + "MONSTERS:" + ConsoleColors.RESET);
         enemies.forEach(System.out::println);
         System.out.println("---------------------");
     }

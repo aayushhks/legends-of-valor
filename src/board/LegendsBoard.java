@@ -1,5 +1,6 @@
 package board;
 
+import utils.ConsoleColors;
 import entities.Party;
 import java.util.Random;
 
@@ -14,9 +15,6 @@ public class LegendsBoard extends Board {
 
     // Visual styling
     private static final String HERO_SYMBOL = " P ";
-    private static final String ANSI_HERO_COLOR = "\u001B[36m"; // Cyan (to contrast with Purple grid)
-    private static final String ANSI_BORDER_COLOR = "\u001B[35m"; // Purple
-    private static final String ANSI_RESET = "\u001B[0m";
 
     public LegendsBoard(int n) {
         super(n, n);
@@ -71,17 +69,17 @@ public class LegendsBoard extends Board {
 
         for (int r = 0; r < height; r++) {
             // Left Border for the row
-            System.out.print(ANSI_BORDER_COLOR + "|" + ANSI_RESET);
+            System.out.print(ConsoleColors.PURPLE + "|" + ConsoleColors.RESET);
 
             for (int c = 0; c < width; c++) {
                 // Render Logic
                 if (party != null && party.getRow() == r && party.getCol() == c) {
-                    System.out.print(ANSI_HERO_COLOR + HERO_SYMBOL + ANSI_RESET);
+                    System.out.print(ConsoleColors.CYAN + HERO_SYMBOL + ConsoleColors.RESET);
                 } else {
                     System.out.print(grid[r][c].toString());
                 }
 
-                System.out.print(ANSI_BORDER_COLOR + "|" + ANSI_RESET); // Column separator
+                System.out.print(ConsoleColors.PURPLE + "|" + ConsoleColors.RESET); // Column separator
             }
             System.out.println(); // New line after row
 
@@ -90,10 +88,10 @@ public class LegendsBoard extends Board {
     }
 
     private void printHorizontalBorder() {
-        System.out.print(ANSI_BORDER_COLOR + "+");
+        System.out.print(ConsoleColors.PURPLE + "+");
         for (int c = 0; c < width; c++) {
             System.out.print("---+");
         }
-        System.out.println(ANSI_RESET);
+        System.out.println(ConsoleColors.RESET);
     }
 }

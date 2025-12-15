@@ -3,6 +3,7 @@ package game;
 import board.Cell;
 import board.CellType;
 import board.ValorBoard;
+import utils.ConsoleColors;
 import common.InputValidator;
 import entities.Hero;
 import entities.Monster;
@@ -37,19 +38,9 @@ public class ValorGame extends Game {
     private int roundCount;
     private boolean quitGame;
 
-    // ANSI Colors for Console
-    private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_RED = "\u001B[31m";
-    private static final String ANSI_GREEN = "\u001B[32m";
-    private static final String ANSI_YELLOW = "\u001B[33m";
-    private static final String ANSI_CYAN = "\u001B[36m";
-    private static final String ANSI_PURPLE = "\u001B[35m";
-    private static final String ANSI_BLUE = "\u001B[34m";
-    private static final String ANSI_WHITE_BOLD = "\033[1;37m";
-
     @Override
     protected void initializeGame(Scanner scanner) {
-        System.out.println(ANSI_CYAN + "Initializing Legends of Valor..." + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "Initializing Legends of Valor..." + ConsoleColors.RESET);
 
         // 1. Load Assets
         this.monsterCatalog = new ArrayList<>();
@@ -71,7 +62,7 @@ public class ValorGame extends Game {
         spawnHeroes();
         spawnMonsters();
 
-        System.out.println(ANSI_GREEN + "\nThe battle for the Nexus begins!" + ANSI_RESET);
+        System.out.println(ConsoleColors.GREEN + "\nThe battle for the Nexus begins!" + ConsoleColors.RESET);
     }
 
     private void setupParty(Scanner scanner) {
@@ -82,17 +73,17 @@ public class ValorGame extends Game {
         availableHeroes.addAll(GameDataLoader.loadHeroes("Sorcerers.txt", Hero.HeroType.SORCERER));
         availableHeroes.addAll(GameDataLoader.loadHeroes("Paladins.txt", Hero.HeroType.PALADIN));
 
-        System.out.println("\n" + ANSI_YELLOW + "=== RECRUIT YOUR TEAM ===" + ANSI_RESET);
+        System.out.println("\n" + ConsoleColors.YELLOW + "=== RECRUIT YOUR TEAM ===" + ConsoleColors.RESET);
         System.out.println("You must select 3 Heroes to defend the Nexus.");
 
         while (party.getHeroes().size() < 3) {
-            System.out.println("\n" + ANSI_WHITE_BOLD + "Party Size: " + party.getHeroes().size() + "/3" + ANSI_RESET);
+            System.out.println("\n" + ConsoleColors.WHITE_BOLD + "Party Size: " + party.getHeroes().size() + "/3" + ConsoleColors.RESET);
 
             // TABLE HEADER
-            System.out.println(ANSI_CYAN + "+----+----------------------+-----------+-----+------+------+------+------+------+" + ANSI_RESET);
-            System.out.printf(ANSI_CYAN + "| %-2s | %-20s | %-9s | %-3s | %-4s | %-4s | %-4s | %-4s | %-4s |%n" + ANSI_RESET,
+            System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
+            System.out.printf(ConsoleColors.CYAN + "| %-2s | %-20s | %-9s | %-3s | %-4s | %-4s | %-4s | %-4s | %-4s |%n" + ConsoleColors.RESET,
                     "ID", "Name", "Class", "Lvl", "HP", "MP", "Str", "Dex", "Agi");
-            System.out.println(ANSI_CYAN + "+----+----------------------+-----------+-----+------+------+------+------+------+" + ANSI_RESET);
+            System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
 
             // TABLE ROWS
             for (int i = 0; i < availableHeroes.size(); i++) {
@@ -101,7 +92,7 @@ public class ValorGame extends Game {
                         (i + 1), h.getName(), h.getType(), h.getLevel(), h.getHp(), h.getMana(),
                         h.getStrength(), h.getDexterity(), h.getAgility());
             }
-            System.out.println(ANSI_CYAN + "+----+----------------------+-----------+-----+------+------+------+------+------+" + ANSI_RESET);
+            System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
 
             int choice = InputValidator.getValidInt(scanner, "Select Hero ID: ", 1, availableHeroes.size());
             Hero selected = availableHeroes.remove(choice - 1);
@@ -110,7 +101,7 @@ public class ValorGame extends Game {
             selected.setLane(party.getHeroes().size());
             party.addHero(selected);
 
-            System.out.println(ANSI_GREEN + selected.getName() + " joined the party!" + ANSI_RESET);
+            System.out.println(ConsoleColors.GREEN + selected.getName() + " joined the party!" + ConsoleColors.RESET);
         }
     }
 
@@ -134,12 +125,12 @@ public class ValorGame extends Game {
         int highestHeroLvl = party.getHeroes().stream().mapToInt(Hero::getLevel).max().orElse(1);
         int[] laneSpawns = {1, 4, 7}; // Right side of Top, Mid, Bot lanes
 
-        System.out.println(ANSI_RED + "*** Reinforcements! New Monsters have entered the Nexus! ***" + ANSI_RESET);
+        System.out.println(ConsoleColors.RED + "*** Reinforcements! New Monsters have entered the Nexus! ***" + ConsoleColors.RESET);
 
         for (int i = 0; i < 3; i++) {
             Cell spawnCell = board.getCell(0, laneSpawns[i]);
             if (spawnCell.hasMonster()) {
-                System.out.println(ANSI_YELLOW + "Lane " + (i + 1) + " spawn blocked!" + ANSI_RESET);
+                System.out.println(ConsoleColors.YELLOW + "Lane " + (i + 1) + " spawn blocked!" + ConsoleColors.RESET);
                 continue;
             }
 
@@ -157,17 +148,17 @@ public class ValorGame extends Game {
 
     @Override
     protected void processTurn(Scanner scanner) {
-        System.out.println("\n" + ANSI_YELLOW + "=== ROUND " + roundCount + " ===" + ANSI_RESET);
+        System.out.println("\n" + ConsoleColors.YELLOW + "=== ROUND " + roundCount + " ===" + ConsoleColors.RESET);
         board.printBoard();
 
         // 1. HEROES TURN
         for (Hero hero : party.getHeroes()) {
             if (hero.isFainted()) {
-                System.out.println(ANSI_RED + hero.getName() + " is fainted (respawns at Nexus next round)." + ANSI_RESET);
+                System.out.println(ConsoleColors.RED + hero.getName() + " is fainted (respawns at Nexus next round)." + ConsoleColors.RESET);
                 continue;
             }
 
-            System.out.println("\nTurn: " + ANSI_CYAN + hero.getName() + " [H" + (hero.getLane() + 1) + "]" + ANSI_RESET + " (Lane " + hero.getLane() + ")");
+            System.out.println("\nTurn: " + ConsoleColors.CYAN + hero.getName() + " [H" + (hero.getLane() + 1) + "]" + ConsoleColors.RESET + " (Lane " + hero.getLane() + ")");
             boolean actionTaken = false;
 
             while (!actionTaken && !quitGame) {
@@ -205,17 +196,17 @@ public class ValorGame extends Game {
 
     private void printControls() {
         System.out.print("CONTROLS: ");
-        System.out.print("[" + ANSI_YELLOW + "W" + ANSI_RESET + "]Move ");
-        System.out.print("[" + ANSI_YELLOW + "A" + ANSI_RESET + "]ttack ");
-        System.out.print("[" + ANSI_YELLOW + "C" + ANSI_RESET + "]ast ");
-        System.out.print("[" + ANSI_YELLOW + "T" + ANSI_RESET + "]eleport ");
-        System.out.print("[" + ANSI_YELLOW + "R" + ANSI_RESET + "]ecall ");
-        System.out.print("[" + ANSI_YELLOW + "M" + ANSI_RESET + "]arket ");
-        System.out.print("[" + ANSI_YELLOW + "P" + ANSI_RESET + "]otion ");
-        System.out.print("[" + ANSI_YELLOW + "E" + ANSI_RESET + "]quip ");
-        System.out.print("[" + ANSI_YELLOW + "I" + ANSI_RESET + "]nfo ");
-        System.out.println("[" + ANSI_YELLOW + "Q" + ANSI_RESET + "]uit");
-        System.out.println(ANSI_CYAN + "----------------------------------------------------------------" + ANSI_RESET);
+        System.out.print("[" + ConsoleColors.YELLOW + "W" + ConsoleColors.RESET + "]Move ");
+        System.out.print("[" + ConsoleColors.YELLOW + "A" + ConsoleColors.RESET + "]ttack ");
+        System.out.print("[" + ConsoleColors.YELLOW + "C" + ConsoleColors.RESET + "]ast ");
+        System.out.print("[" + ConsoleColors.YELLOW + "T" + ConsoleColors.RESET + "]eleport ");
+        System.out.print("[" + ConsoleColors.YELLOW + "R" + ConsoleColors.RESET + "]ecall ");
+        System.out.print("[" + ConsoleColors.YELLOW + "M" + ConsoleColors.RESET + "]arket ");
+        System.out.print("[" + ConsoleColors.YELLOW + "P" + ConsoleColors.RESET + "]otion ");
+        System.out.print("[" + ConsoleColors.YELLOW + "E" + ConsoleColors.RESET + "]quip ");
+        System.out.print("[" + ConsoleColors.YELLOW + "I" + ConsoleColors.RESET + "]nfo ");
+        System.out.println("[" + ConsoleColors.YELLOW + "Q" + ConsoleColors.RESET + "]uit");
+        System.out.println(ConsoleColors.CYAN + "----------------------------------------------------------------" + ConsoleColors.RESET);
     }
 
     // HERO ACTIONS
@@ -236,7 +227,7 @@ public class ValorGame extends Game {
         int newC = hero.getCol() + dC;
 
         if (!board.isValidCoordinate(newR, newC)) {
-            System.out.println(ANSI_RED + "Blocked: Cannot move off the board." + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "Blocked: Cannot move off the board." + ConsoleColors.RESET);
             return false;
         }
 
@@ -249,7 +240,7 @@ public class ValorGame extends Game {
                     // 'Ahead' means closer to Row 0.
                     if (m.getRow() <= hero.getRow()) {
                         if (newR < m.getRow()) {
-                            System.out.println(ANSI_RED + "Blocked: You cannot move behind " + m.getName() + "!" + ANSI_RESET);
+                            System.out.println(ConsoleColors.RED + "Blocked: You cannot move behind " + m.getName() + "!" + ConsoleColors.RESET);
                             return false;
                         }
                     }
@@ -261,12 +252,12 @@ public class ValorGame extends Game {
 
         // Obstacles
         if (target.getType() == CellType.OBSTACLE) {
-            System.out.println(ANSI_YELLOW + "An OBSTACLE blocks your path." + ANSI_RESET);
+            System.out.println(ConsoleColors.YELLOW + "An OBSTACLE blocks your path." + ConsoleColors.RESET);
             String choice = InputValidator.getValidOption(scanner, "Do you want to destroy it? (y/n): ", "y", "n");
 
             if (choice.equals("y")) {
                 target.setType(CellType.COMMON); // Convert to plain cell
-                System.out.println(ANSI_GREEN + "You destroyed the obstacle! (Turn Used)" + ANSI_RESET);
+                System.out.println(ConsoleColors.GREEN + "You destroyed the obstacle! (Turn Used)" + ConsoleColors.RESET);
                 return true; // Turn consumed, but hero doesn't move yet
             } else {
                 return false; // Action cancelled
@@ -275,17 +266,17 @@ public class ValorGame extends Game {
 
         // 1. Terrain Check
         if (!target.isAccessible()) {
-            System.out.println(ANSI_RED + "Blocked: Inaccessible terrain." + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "Blocked: Inaccessible terrain." + ConsoleColors.RESET);
             return false;
         }
 
         // 2. Occupancy Check
         if (target.hasHero()) {
-            System.out.println(ANSI_RED + "Blocked: Another hero is standing there." + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "Blocked: Another hero is standing there." + ConsoleColors.RESET);
             return false;
         }
         if (target.hasMonster()) {
-            System.out.println(ANSI_RED + "Blocked: You cannot walk through a monster!" + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "Blocked: You cannot walk through a monster!" + ConsoleColors.RESET);
             return false;
         }
 
@@ -303,13 +294,13 @@ public class ValorGame extends Game {
     private void applyTerrainBonus(Hero hero, Cell cell) {
         switch (cell.getType()) {
             case BUSH:
-                System.out.println(ANSI_GREEN + "Terrain: Bush increases Dexterity!" + ANSI_RESET);
+                System.out.println(ConsoleColors.GREEN + "Terrain: Bush increases Dexterity!" + ConsoleColors.RESET);
                 break;
             case CAVE:
-                System.out.println(ANSI_YELLOW + "Terrain: Cave increases Agility!" + ANSI_RESET);
+                System.out.println(ConsoleColors.YELLOW + "Terrain: Cave increases Agility!" + ConsoleColors.RESET);
                 break;
             case KOULOU:
-                System.out.println(ANSI_BLUE + "Terrain: Koulou increases Strength!" + ANSI_RESET);
+                System.out.println(ConsoleColors.BLUE + "Terrain: Koulou increases Strength!" + ConsoleColors.RESET);
                 break;
             default: break;
         }
@@ -327,7 +318,7 @@ public class ValorGame extends Game {
         }
 
         if (targets.isEmpty()) {
-            System.out.println(ANSI_YELLOW + "No monsters in range." + ANSI_RESET);
+            System.out.println(ConsoleColors.YELLOW + "No monsters in range." + ConsoleColors.RESET);
             return false;
         }
 
@@ -346,10 +337,10 @@ public class ValorGame extends Game {
         } else {
             double actualDmg = Math.max(0, rawDmg - (target.getDefense() * 0.02));
             target.setHp(target.getHp() - actualDmg);
-            System.out.println(hero.getName() + " dealt " + ANSI_RED + String.format("%.0f", actualDmg) + ANSI_RESET + " damage!");
+            System.out.println(hero.getName() + " dealt " + ConsoleColors.RED + String.format("%.0f", actualDmg) + ConsoleColors.RESET + " damage!");
 
             if (target.isFainted()) {
-                System.out.println(ANSI_GREEN + target.getName() + " was DEFEATED!" + ANSI_RESET);
+                System.out.println(ConsoleColors.GREEN + target.getName() + " was DEFEATED!" + ConsoleColors.RESET);
                 board.getCell(target.getRow(), target.getCol()).removeMonster();
                 activeMonsters.remove(target);
 
@@ -366,7 +357,7 @@ public class ValorGame extends Game {
     private boolean handleCastSpell(Scanner scanner, Hero hero) {
         List<Spell> spells = hero.getInventory().getSpells();
         if (spells.isEmpty()) {
-            System.out.println(ANSI_YELLOW + "You have no spells!" + ANSI_RESET);
+            System.out.println(ConsoleColors.YELLOW + "You have no spells!" + ConsoleColors.RESET);
             return false;
         }
 
@@ -381,23 +372,23 @@ public class ValorGame extends Game {
         }
 
         if (targets.isEmpty()) {
-            System.out.println(ANSI_YELLOW + "No monsters in range." + ANSI_RESET);
+            System.out.println(ConsoleColors.YELLOW + "No monsters in range." + ConsoleColors.RESET);
             return false;
         }
 
         // Display spellbook
-        System.out.println(ANSI_PURPLE + "--- Spellbook ---" + ANSI_RESET);
+        System.out.println(ConsoleColors.PURPLE + "--- Spellbook ---" + ConsoleColors.RESET);
         for (int i = 0; i < spells.size(); i++) {
             System.out.println((i + 1) + ". " + spells.get(i));
         }
         System.out.println((spells.size() + 1) + ". Cancel");
 
-        int spellChoice = InputValidator.getValidInt(scanner, ANSI_CYAN + "Select Spell: " + ANSI_RESET, 1, spells.size() + 1);
+        int spellChoice = InputValidator.getValidInt(scanner, ConsoleColors.CYAN + "Select Spell: " + ConsoleColors.RESET, 1, spells.size() + 1);
         if (spellChoice == spells.size() + 1) return false;
 
         Spell spell = spells.get(spellChoice - 1);
         if (hero.getMana() < spell.getManaCost()) {
-            System.out.println(ANSI_RED + "Not enough Mana! Cost: " + spell.getManaCost() + " | Current: " + hero.getMana() + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "Not enough Mana! Cost: " + spell.getManaCost() + " | Current: " + hero.getMana() + ConsoleColors.RESET);
             return false;
         }
 
@@ -421,26 +412,26 @@ public class ValorGame extends Game {
             System.out.println(target.getName() + " DODGED the spell!");
         } else {
             target.setHp(target.getHp() - damage);
-            System.out.printf("%s casts %s on %s for " + ANSI_RED + "%.0f damage!" + ANSI_RESET + "\n", 
+            System.out.printf("%s casts %s on %s for " + ConsoleColors.RED + "%.0f damage!" + ConsoleColors.RESET + "\n", 
                     hero.getName(), spell.getName(), target.getName(), damage);
 
             // Apply spell effects if target survives
             if (!target.isFainted()) {
                 if (spell.getType() == SpellType.ICE) {
                     target.reduceDamage(target.getBaseDamage() * 0.1);
-                    System.out.println(ANSI_CYAN + target.getName() + "'s damage reduced by Ice!" + ANSI_RESET);
+                    System.out.println(ConsoleColors.CYAN + target.getName() + "'s damage reduced by Ice!" + ConsoleColors.RESET);
                 } else if (spell.getType() == SpellType.FIRE) {
                     target.reduceDefense(target.getDefense() * 0.1);
-                    System.out.println(ANSI_RED + target.getName() + "'s defense melted by Fire!" + ANSI_RESET);
+                    System.out.println(ConsoleColors.RED + target.getName() + "'s defense melted by Fire!" + ConsoleColors.RESET);
                 } else if (spell.getType() == SpellType.LIGHTNING) {
                     target.reduceDodgeChance(target.getDodgeChance() * 0.1);
-                    System.out.println(ANSI_YELLOW + target.getName() + "'s dodge reduced by Lightning!" + ANSI_RESET);
+                    System.out.println(ConsoleColors.YELLOW + target.getName() + "'s dodge reduced by Lightning!" + ConsoleColors.RESET);
                 }
             }
 
             // Check if target defeated
             if (target.isFainted()) {
-                System.out.println(ANSI_GREEN + target.getName() + " was DEFEATED!" + ANSI_RESET);
+                System.out.println(ConsoleColors.GREEN + target.getName() + " was DEFEATED!" + ConsoleColors.RESET);
                 board.getCell(target.getRow(), target.getCol()).removeMonster();
                 activeMonsters.remove(target);
 
@@ -466,7 +457,7 @@ public class ValorGame extends Game {
         }
 
         if (targets.isEmpty()) {
-            System.out.println(ANSI_YELLOW + "No valid heroes to teleport to (must be in a different lane)." + ANSI_RESET);
+            System.out.println(ConsoleColors.YELLOW + "No valid heroes to teleport to (must be in a different lane)." + ConsoleColors.RESET);
             return false;
         }
 
@@ -487,12 +478,12 @@ public class ValorGame extends Game {
                     hero.setPosition(s[0], s[1]);
                     hero.setLane(destHero.getLane());
                     cell.setHero(hero);
-                    System.out.println(ANSI_PURPLE + "*WOOSH* " + hero.getName() + " teleported to " + destHero.getName() + "!" + ANSI_RESET);
+                    System.out.println(ConsoleColors.PURPLE + "*WOOSH* " + hero.getName() + " teleported to " + destHero.getName() + "!" + ConsoleColors.RESET);
                     return true;
                 }
             }
         }
-        System.out.println(ANSI_RED + "Teleport failed: No open space beside target." + ANSI_RESET);
+        System.out.println(ConsoleColors.RED + "Teleport failed: No open space beside target." + ConsoleColors.RESET);
         return false;
     }
 
@@ -502,14 +493,14 @@ public class ValorGame extends Game {
 
         Cell spawn = board.getCell(r, c);
         if (spawn.hasHero() && spawn.getHero() != hero) {
-            System.out.println(ANSI_RED + "Recall failed: Your Nexus spawn is blocked." + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "Recall failed: Your Nexus spawn is blocked." + ConsoleColors.RESET);
             return false;
         }
 
         board.getCell(hero.getRow(), hero.getCol()).removeHero();
         hero.setPosition(r, c);
         spawn.setHero(hero);
-        System.out.println(ANSI_CYAN + hero.getName() + " recalled to Nexus." + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + hero.getName() + " recalled to Nexus." + ConsoleColors.RESET);
         return true;
     }
 
@@ -518,18 +509,18 @@ public class ValorGame extends Game {
         
         // Check if hero is in a Nexus cell (row 7 is Hero Nexus)
         if (currentCell.getType() != CellType.NEXUS) {
-            System.out.println(ANSI_RED + "Market unavailable: You must be in your Nexus to access the market!" + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "Market unavailable: You must be in your Nexus to access the market!" + ConsoleColors.RESET);
             return false;
         }
         
-        System.out.println(ANSI_GREEN + hero.getName() + " enters the Nexus market..." + ANSI_RESET);
+        System.out.println(ConsoleColors.GREEN + hero.getName() + " enters the Nexus market..." + ConsoleColors.RESET);
         
         // Use the overloaded single-hero market method
         marketController.enterMarket(scanner, hero);
         
         // Redisplay the board and hero turn info after exiting market
         board.printBoard();
-        System.out.println("\nTurn: " + ANSI_CYAN + hero.getName() + " [H" + (hero.getLane() + 1) + "]" + ANSI_RESET + " (Lane " + hero.getLane() + ")");
+        System.out.println("\nTurn: " + ConsoleColors.CYAN + hero.getName() + " [H" + (hero.getLane() + 1) + "]" + ConsoleColors.RESET + " (Lane " + hero.getLane() + ")");
         
         // Market visit doesn't consume a turn
         return false;
@@ -572,7 +563,7 @@ public class ValorGame extends Game {
     }
 
     private void processMonstersTurn() {
-        System.out.println(ANSI_RED + "\n--- Monsters Turn ---" + ANSI_RESET);
+        System.out.println(ConsoleColors.RED + "\n--- Monsters Turn ---" + ConsoleColors.RESET);
         Iterator<Monster> it = activeMonsters.iterator();
         while (it.hasNext()) {
             Monster m = it.next();
@@ -603,36 +594,37 @@ public class ValorGame extends Game {
             } else {
                 h.revive();
                 handleRecall(h);
-                System.out.println(ANSI_GREEN + h.getName() + " has respawned at the Nexus!" + ANSI_RESET);
+                System.out.println(ConsoleColors.GREEN + h.getName() + " has respawned at the Nexus!" + ConsoleColors.RESET);
             }
         }
     }
 
     private void printDashboard() {
-        System.out.println(ANSI_CYAN + "\n+------------------------------------------------------------+" + ANSI_RESET);
-        System.out.println(ANSI_CYAN + "|" + ANSI_RESET + ANSI_WHITE_BOLD + "                        PARTY STATUS                        " + ANSI_RESET + ANSI_CYAN + "|" + ANSI_RESET);
-        System.out.println(ANSI_CYAN + "+----------------------+-------+--------+--------+-----------+" + ANSI_RESET);
-        System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " %-5s " + ANSI_CYAN + "|" + ANSI_RESET + " %-6s " + ANSI_CYAN + "|" + ANSI_RESET + " %-6s " + ANSI_CYAN + "|" + ANSI_RESET + " %-9s " + ANSI_CYAN + "|\n" + ANSI_RESET, "NAME", "LVL", "HP", "MP", "GOLD");
-        System.out.println(ANSI_CYAN + "+----------------------+-------+--------+--------+-----------+" + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "\n+------------------------------------------------------------+" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + ConsoleColors.WHITE_BOLD + "                        PARTY STATUS                        " + ConsoleColors.RESET + ConsoleColors.CYAN + "|" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.CYAN + "+----------------------+-------+--------+--------+-----------+" + ConsoleColors.RESET);
+        System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-5s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-6s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-6s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-9s " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET, "NAME", "LVL", "HP", "MP", "GOLD");
+        System.out.println(ConsoleColors.CYAN + "+----------------------+-------+--------+--------+-----------+" + ConsoleColors.RESET);
 
         for (Hero h : party.getHeroes()) {
-            System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " %-5d " + ANSI_CYAN + "|" + ANSI_RESET + " %-6.0f " + ANSI_CYAN + "|" + ANSI_RESET + " %-6.0f " + ANSI_CYAN + "|" + ANSI_RESET + " %-9.0f " + ANSI_CYAN + "|\n" + ANSI_RESET,
+            System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-5d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-6.0f " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-6.0f " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-9.0f " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
                     h.getName(), h.getLevel(), h.getHp(), h.getMana(), h.getMoney());
         }
-        System.out.println(ANSI_CYAN + "+------------------------------------------------------------+" + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "+------------------------------------------------------------+" + ConsoleColors.RESET);
     }
 
     @Override
     protected boolean isGameOver() {
         for (Hero h : party.getHeroes()) {
             if (h.getRow() == 0) {
-                System.out.println(ANSI_GREEN + "\n*** VICTORY! ***" + ANSI_RESET);
+                System.out.println(ConsoleColors.GREEN + "\n*** VICTORY! ***" + ConsoleColors.RESET);
                 return true;
             }
         }
         for (Monster m : activeMonsters) {
             if (m.getRow() == 7) {
-                System.out.println(ANSI_RED + "\n*** DEFEAT! ***" + ANSI_RESET);
+                System.out.println(ConsoleColors.RED + "\n*** DEFEAT! ***" + ConsoleColors.RESET);
+                System.out.println(ConsoleColors.RED + "You lost!" + ConsoleColors.RESET);
                 return true;
             }
         }
@@ -644,10 +636,19 @@ public class ValorGame extends Game {
 
     @Override
     protected void endGame() {
-        System.out.println(ANSI_RED + "\nGame Over. Thanks for playing Legends of Valor!" + ANSI_RESET);
+        System.out.println(ConsoleColors.RED + "\nGame Over. Thanks for playing Legends of Valor!" + ConsoleColors.RESET);
         if (party != null) {
-            System.out.println(ANSI_WHITE_BOLD + "Final Status:" + ANSI_RESET);
+            System.out.println(ConsoleColors.WHITE_BOLD + "Final Status:" + ConsoleColors.RESET);
             printDashboard();
+        }
+        
+        Scanner scanner = new Scanner(System.in);
+        String input = InputValidator.getValidOption(scanner, "\n" + ConsoleColors.YELLOW + "Do you want to play again? (y/n): " + ConsoleColors.RESET, "y", "n");
+        
+        if (input.equals("y")) {
+            common.GameRunner.run();
+        } else {
+            System.exit(0);
         }
     }
 }

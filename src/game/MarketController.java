@@ -1,5 +1,6 @@
 package game;
 
+import utils.ConsoleColors;
 import common.InputValidator;
 import common.RandomGenerator;
 import entities.Hero;
@@ -21,14 +22,6 @@ import java.util.stream.Collectors;
 public class MarketController {
 
     private final List<Item> globalItemCatalog;
-
-    // ANSI Colors
-    private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_CYAN = "\u001B[36m";
-    private static final String ANSI_YELLOW = "\u001B[33m";
-    private static final String ANSI_GREEN = "\u001B[32m";
-    private static final String ANSI_RED = "\u001B[31m";
-    private static final String ANSI_WHITE_BOLD = "\033[1;37m";
 
     public MarketController() {
         this.globalItemCatalog = new ArrayList<>();
@@ -62,7 +55,7 @@ public class MarketController {
 
         boolean inMarket = true;
         while (inMarket) {
-            System.out.println("\n" + ANSI_YELLOW + "--- Market Menu ---" + ANSI_RESET);
+            System.out.println("\n" + ConsoleColors.YELLOW + "--- Market Menu ---" + ConsoleColors.RESET);
             System.out.println("1. Buy Items");
             System.out.println("2. Sell Items");
             System.out.println("3. Exit Market");
@@ -75,7 +68,7 @@ public class MarketController {
                 case 3: inMarket = false; break;
             }
         }
-        System.out.println(ANSI_GREEN + "You leave the market." + ANSI_RESET);
+        System.out.println(ConsoleColors.GREEN + "You leave the market." + ConsoleColors.RESET);
     }
 
     /**
@@ -87,8 +80,8 @@ public class MarketController {
 
         boolean inMarket = true;
         while (inMarket) {
-            System.out.println("\n" + ANSI_YELLOW + "--- Market Menu ---" + ANSI_RESET);
-            System.out.println(ANSI_CYAN + "Hero: " + hero.getName() + " | Level: " + hero.getLevel() + " | Gold: " + ANSI_YELLOW + hero.getMoney() + ANSI_RESET);
+            System.out.println("\n" + ConsoleColors.YELLOW + "--- Market Menu ---" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.CYAN + "Hero: " + hero.getName() + " | Level: " + hero.getLevel() + " | Gold: " + ConsoleColors.YELLOW + hero.getMoney() + ConsoleColors.RESET);
             System.out.println("1. Buy Items");
             System.out.println("2. Sell Items");
             System.out.println("3. Exit Market");
@@ -101,7 +94,7 @@ public class MarketController {
                 case 3: inMarket = false; break;
             }
         }
-        System.out.println(ANSI_GREEN + hero.getName() + " leaves the market." + ANSI_RESET);
+        System.out.println(ConsoleColors.GREEN + hero.getName() + " leaves the market." + ConsoleColors.RESET);
     }
 
     private List<Item> generateMarketInventory() {
@@ -130,7 +123,7 @@ public class MarketController {
 
     private void buyLoopSingleHero(Scanner scanner, Hero shopper, List<Item> marketInventory) {
         while (true) {
-            System.out.println("\n" + ANSI_WHITE_BOLD + "--- Items for Sale (Shopper: " + shopper.getName() + " | Gold: " + ANSI_YELLOW + shopper.getMoney() + ANSI_RESET + ") ---" + ANSI_RESET);
+            System.out.println("\n" + ConsoleColors.WHITE_BOLD + "--- Items for Sale (Shopper: " + shopper.getName() + " | Gold: " + ConsoleColors.YELLOW + shopper.getMoney() + ConsoleColors.RESET + ") ---" + ConsoleColors.RESET);
             printItemTable(marketInventory);
             System.out.println((marketInventory.size() + 1) + ". Back");
 
@@ -145,20 +138,20 @@ public class MarketController {
     private void processPurchase(Hero hero, Item item) {
         // Rule: Hero cannot buy item if level is too low
         if (hero.getLevel() < item.getMinLevel()) {
-            System.out.println(ANSI_RED + "Cannot buy! Required Level: " + item.getMinLevel() + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "Cannot buy! Required Level: " + item.getMinLevel() + ConsoleColors.RESET);
             return;
         }
 
         // Rule: Hero cannot buy if insufficient gold
         if (hero.getMoney() < item.getPrice()) {
-            System.out.println(ANSI_RED + "Insufficient Gold! Cost: " + item.getPrice() + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "Insufficient Gold! Cost: " + item.getPrice() + ConsoleColors.RESET);
             return;
         }
 
         // Transaction
         hero.deductMoney(item.getPrice());
         hero.getInventory().addItem(item);
-        System.out.println(ANSI_GREEN + "Purchase successful! " + item.getName() + " added to inventory." + ANSI_RESET);
+        System.out.println(ConsoleColors.GREEN + "Purchase successful! " + item.getName() + " added to inventory." + ConsoleColors.RESET);
     }
 
     // SELLING LOGIC
@@ -172,11 +165,11 @@ public class MarketController {
         while (true) {
             List<Item> sellableItems = seller.getInventory().getItems();
             if (sellableItems.isEmpty()) {
-                System.out.println(ANSI_YELLOW + seller.getName() + " has nothing to sell." + ANSI_RESET);
+                System.out.println(ConsoleColors.YELLOW + seller.getName() + " has nothing to sell." + ConsoleColors.RESET);
                 break;
             }
 
-            System.out.println("\n" + ANSI_WHITE_BOLD + "--- Your Inventory (Seller: " + seller.getName() + ") ---" + ANSI_RESET);
+            System.out.println("\n" + ConsoleColors.WHITE_BOLD + "--- Your Inventory (Seller: " + seller.getName() + ") ---" + ConsoleColors.RESET);
             // Show items with their resale value (50% of price)
             printSellableItemTable(sellableItems);
             System.out.println((sellableItems.size() + 1) + ". Back");
@@ -195,12 +188,12 @@ public class MarketController {
         hero.getInventory().removeItem(item);
         hero.addMoney(resaleValue);
 
-        System.out.println(ANSI_GREEN + "Sold " + item.getName() + " for " + resaleValue + " gold." + ANSI_RESET);
+        System.out.println(ConsoleColors.GREEN + "Sold " + item.getName() + " for " + resaleValue + " gold." + ConsoleColors.RESET);
     }
 
     // HELPERS
     private Hero selectHero(Scanner scanner, Party party, String prompt) {
-        System.out.println(ANSI_CYAN + prompt + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + prompt + ConsoleColors.RESET);
         for (int i = 0; i < party.getSize(); i++) {
             System.out.println((i + 1) + ". " + party.getHero(i).getName());
         }
@@ -214,32 +207,32 @@ public class MarketController {
 
     // PRETTY TABLE PRINTING
     private void printItemTable(List<Item> items) {
-        System.out.println(ANSI_CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ANSI_RESET);
-        System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-2s " + ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " %-3s " + ANSI_CYAN + "|" + ANSI_RESET + " %-8s " + ANSI_CYAN + "|" + ANSI_RESET + " %-30s " + ANSI_CYAN + "|\n" + ANSI_RESET, "ID", "NAME", "LVL", "COST", "TYPE / STATS");
-        System.out.println(ANSI_CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ConsoleColors.RESET);
+        System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-2s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-3s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-8s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-30s " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET, "ID", "NAME", "LVL", "COST", "TYPE / STATS");
+        System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ConsoleColors.RESET);
 
         for (int i = 0; i < items.size(); i++) {
             Item item = items.get(i);
             String stats = extractStats(item); // Helper to get simplified stats
-            System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-2d " + ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " %-3d " + ANSI_CYAN + "|" + ANSI_RESET + " " + ANSI_YELLOW + "%-8.0f" + ANSI_RESET + " " + ANSI_CYAN + "|" + ANSI_RESET + " %-30s " + ANSI_CYAN + "|\n" + ANSI_RESET,
+            System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-2d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-3d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " " + ConsoleColors.YELLOW + "%-8.0f" + ConsoleColors.RESET + " " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-30s " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
                     (i + 1), item.getName(), item.getMinLevel(), item.getPrice(), stats);
         }
-        System.out.println(ANSI_CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ConsoleColors.RESET);
     }
 
     private void printSellableItemTable(List<Item> items) {
-        System.out.println(ANSI_CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ANSI_RESET);
-        System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-2s " + ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " %-3s " + ANSI_CYAN + "|" + ANSI_RESET + " %-8s " + ANSI_CYAN + "|" + ANSI_RESET + " %-30s " + ANSI_CYAN + "|\n" + ANSI_RESET, "ID", "NAME", "LVL", "SELL", "TYPE / STATS");
-        System.out.println(ANSI_CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ConsoleColors.RESET);
+        System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-2s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-3s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-8s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-30s " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET, "ID", "NAME", "LVL", "SELL", "TYPE / STATS");
+        System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ConsoleColors.RESET);
 
         for (int i = 0; i < items.size(); i++) {
             Item item = items.get(i);
             String stats = extractStats(item);
             double sellPrice = item.getPrice() * 0.5;
-            System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-2d " + ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " %-3d " + ANSI_CYAN + "|" + ANSI_RESET + " " + ANSI_YELLOW + "%-8.0f" + ANSI_RESET + " " + ANSI_CYAN + "|" + ANSI_RESET + " %-30s " + ANSI_CYAN + "|\n" + ANSI_RESET,
+            System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-2d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-3d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " " + ConsoleColors.YELLOW + "%-8.0f" + ConsoleColors.RESET + " " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-30s " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
                     (i + 1), item.getName(), item.getMinLevel(), sellPrice, stats);
         }
-        System.out.println(ANSI_CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ConsoleColors.RESET);
     }
 
     // Helper to format item details concisely for the table

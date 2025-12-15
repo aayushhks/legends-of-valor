@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
+import utils.ConsoleColors;
+
 public class LegendsGame extends Game {
 
     private LegendsBoard board;
@@ -37,19 +39,11 @@ public class LegendsGame extends Game {
     private List<Hero> availablePaladins;
     private List<Monster> allMonsters;
 
-    // ANSI Color Constants
-    private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_CYAN = "\u001B[36m";
-    private static final String ANSI_YELLOW = "\u001B[33m";
-    private static final String ANSI_GREEN = "\u001B[32m";
-    private static final String ANSI_RED = "\u001B[31m";
-    private static final String ANSI_BLUE = "\u001B[34m";
-    private static final String ANSI_PURPLE = "\u001B[35m";
-    private static final String ANSI_WHITE_BOLD = "\033[1;37m";
+
 
     @Override
     protected void initializeGame(Scanner scanner) {
-        System.out.println(ANSI_CYAN + "Loading Game Data..." + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "Loading Game Data..." + ConsoleColors.RESET);
         loadAssets();
 
         this.marketController = new MarketController();
@@ -61,11 +55,11 @@ public class LegendsGame extends Game {
     private void setupNewSession(Scanner scanner) {
         quitGame = false; // Reset quit flag for new session
 
-        System.out.println("\n" + ANSI_YELLOW + "--- World Generation ---" + ANSI_RESET);
+        System.out.println("\n" + ConsoleColors.YELLOW + "--- World Generation ---" + ConsoleColors.RESET);
         int boardSize = InputValidator.getValidInt(scanner, "Enter board size (4-20): ", 4, 20);
         this.board = new LegendsBoard(boardSize);
 
-        System.out.println("\n" + ANSI_YELLOW + "--- Hero Selection ---" + ANSI_RESET);
+        System.out.println("\n" + ConsoleColors.YELLOW + "--- Hero Selection ---" + ConsoleColors.RESET);
         int partySize = InputValidator.getValidInt(scanner, "Enter party size (1-3): ", 1, 3);
 
         this.party = new Party();
@@ -80,7 +74,7 @@ public class LegendsGame extends Game {
         }
 
         this.board.setParty(party);
-        System.out.println(ANSI_GREEN + "\nThe party enters the world..." + ANSI_RESET);
+        System.out.println(ConsoleColors.GREEN + "\nThe party enters the world..." + ConsoleColors.RESET);
     }
 
     private void loadAssets() {
@@ -99,26 +93,26 @@ public class LegendsGame extends Game {
     }
 
     private Hero selectHero(Scanner scanner) {
-        System.out.println("1. " + ANSI_RED + "Warrior" + ANSI_RESET + " (Favors Strength/Agility)");
-        System.out.println("2. " + ANSI_BLUE + "Sorcerer" + ANSI_RESET + " (Favors Dexterity/Agility)");
-        System.out.println("3. " + ANSI_GREEN + "Paladin" + ANSI_RESET + " (Favors Strength/Dexterity)");
+        System.out.println("1. " + ConsoleColors.RED + "Warrior" + ConsoleColors.RESET + " (Favors Strength/Agility)");
+        System.out.println("2. " + ConsoleColors.BLUE + "Sorcerer" + ConsoleColors.RESET + " (Favors Dexterity/Agility)");
+        System.out.println("3. " + ConsoleColors.GREEN + "Paladin" + ConsoleColors.RESET + " (Favors Strength/Dexterity)");
 
         int typeChoice = InputValidator.getValidInt(scanner, "Choose class: ", 1, 3);
         List<Hero> choiceList = (typeChoice == 1) ? availableWarriors :
                 (typeChoice == 2) ? availableSorcerers : availablePaladins;
 
-        System.out.println("\n" + ANSI_WHITE_BOLD + "Available Heroes:" + ANSI_RESET);
-        System.out.println(ANSI_CYAN + "+----+----------------------+-----+------+------+------+------+------+" + ANSI_RESET);
-        System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-2s " + ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " %-3s " + ANSI_CYAN + "|" + ANSI_RESET + " %-4s " + ANSI_CYAN + "|" + ANSI_RESET + " %-4s " + ANSI_CYAN + "|" + ANSI_RESET + " %-4s " + ANSI_CYAN + "|" + ANSI_RESET + " %-4s " + ANSI_CYAN + "|" + ANSI_RESET + " %-4s " + ANSI_CYAN + "|\n" + ANSI_RESET,
+        System.out.println("\n" + ConsoleColors.WHITE_BOLD + "Available Heroes:" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
+        System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-2s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-3s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4s " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
                 "ID", "NAME", "LVL", "HP", "MP", "STR", "DEX", "AGI");
-        System.out.println(ANSI_CYAN + "+----+----------------------+-----+------+------+------+------+------+" + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
 
         for (int i = 0; i < choiceList.size(); i++) {
             Hero h = choiceList.get(i);
-            System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-2d " + ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " %-3d " + ANSI_CYAN + "|" + ANSI_RESET + " %-4.0f " + ANSI_CYAN + "|" + ANSI_RESET + " %-4.0f " + ANSI_CYAN + "|" + ANSI_RESET + " %-4.0f " + ANSI_CYAN + "|" + ANSI_RESET + " %-4.0f " + ANSI_CYAN + "|" + ANSI_RESET + " %-4.0f " + ANSI_CYAN + "|\n" + ANSI_RESET,
+            System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-2d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-3d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4.0f " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4.0f " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4.0f " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4.0f " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-4.0f " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
                     (i + 1), h.getName(), h.getLevel(), h.getHp(), h.getMana(), h.getStrength(), h.getDexterity(), h.getAgility());
         }
-        System.out.println(ANSI_CYAN + "+----+----------------------+-----+------+------+------+------+------+" + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
         System.out.println((choiceList.size() + 1) + ". Quit Game");
 
         int heroIndex = InputValidator.getValidInt(scanner, "Select hero ID: ", 1, choiceList.size() + 1) - 1;
@@ -158,24 +152,24 @@ public class LegendsGame extends Game {
     }
 
     private void printDashboard() {
-        System.out.println(ANSI_CYAN + "\n+------------------------------------------------------------+" + ANSI_RESET);
-        System.out.println(ANSI_CYAN + "|" + ANSI_RESET + ANSI_WHITE_BOLD + "                        PARTY STATUS                        " + ANSI_RESET + ANSI_CYAN + "|" + ANSI_RESET);
-        System.out.println(ANSI_CYAN + "+----------------------+-------+--------+--------+-----------+" + ANSI_RESET);
-        System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " %-5s " + ANSI_CYAN + "|" + ANSI_RESET + " %-6s " + ANSI_CYAN + "|" + ANSI_RESET + " %-6s " + ANSI_CYAN + "|" + ANSI_RESET + " %-9s " + ANSI_CYAN + "|\n" + ANSI_RESET, "NAME", "LVL", "HP", "MP", "GOLD");
-        System.out.println(ANSI_CYAN + "+----------------------+-------+--------+--------+-----------+" + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "\n+------------------------------------------------------------+" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + ConsoleColors.WHITE_BOLD + "                        PARTY STATUS                        " + ConsoleColors.RESET + ConsoleColors.CYAN + "|" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.CYAN + "+----------------------+-------+--------+--------+-----------+" + ConsoleColors.RESET);
+        System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-5s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-6s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-6s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-9s " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET, "NAME", "LVL", "HP", "MP", "GOLD");
+        System.out.println(ConsoleColors.CYAN + "+----------------------+-------+--------+--------+-----------+" + ConsoleColors.RESET);
 
         for (Hero h : party.getHeroes()) {
             String hp = String.format("%.0f", h.getHp());
             String mp = String.format("%.0f", h.getMana());
 
-            System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " %-5d " + ANSI_CYAN + "|" + ANSI_RESET + " %-6.0f " + ANSI_CYAN + "|" + ANSI_RESET + " %-6.0f " + ANSI_CYAN + "|" + ANSI_RESET + " %-9.0f " + ANSI_CYAN + "|\n" + ANSI_RESET,
+            System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-5d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-6.0f " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-6.0f " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-9.0f " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
                     h.getName(), h.getLevel(), h.getHp(), h.getMana(), h.getMoney());
         }
-        System.out.println(ANSI_CYAN + "+------------------------------------------------------------+" + ANSI_RESET);
+        System.out.println(ConsoleColors.CYAN + "+------------------------------------------------------------+" + ConsoleColors.RESET);
     }
 
     private void printControls() {
-        System.out.println(" CONTROLS: [" + ANSI_YELLOW + "W" + ANSI_RESET + "]Up [" + ANSI_YELLOW + "A" + ANSI_RESET + "]Left [" + ANSI_YELLOW + "S" + ANSI_RESET + "]Down [" + ANSI_YELLOW + "D" + ANSI_RESET + "]Right  [" + ANSI_YELLOW + "M" + ANSI_RESET + "]Market [" + ANSI_YELLOW + "I" + ANSI_RESET + "]Info [" + ANSI_YELLOW + "Q" + ANSI_RESET + "]Quit");
+        System.out.println(" CONTROLS: [" + ConsoleColors.YELLOW + "W" + ConsoleColors.RESET + "]Up [" + ConsoleColors.YELLOW + "A" + ConsoleColors.RESET + "]Left [" + ConsoleColors.YELLOW + "S" + ConsoleColors.RESET + "]Down [" + ConsoleColors.YELLOW + "D" + ConsoleColors.RESET + "]Right  [" + ConsoleColors.YELLOW + "M" + ConsoleColors.RESET + "]Market [" + ConsoleColors.YELLOW + "I" + ConsoleColors.RESET + "]Info [" + ConsoleColors.YELLOW + "Q" + ConsoleColors.RESET + "]Quit");
         System.out.println("--------------------------------------------------------------");
     }
 
@@ -184,13 +178,13 @@ public class LegendsGame extends Game {
         int newCol = party.getCol() + dCol;
 
         if (!board.isValidCoordinate(newRow, newCol)) {
-            System.out.println(ANSI_RED + "You cannot move off the edge of the world!" + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "You cannot move off the edge of the world!" + ConsoleColors.RESET);
             return;
         }
 
         Cell targetCell = board.getCell(newRow, newCol);
         if (!targetCell.isAccessible()) {
-            System.out.println(ANSI_RED + "That path is blocked (Inaccessible)." + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "That path is blocked (Inaccessible)." + ConsoleColors.RESET);
             return;
         }
 
@@ -203,7 +197,7 @@ public class LegendsGame extends Game {
 
     private void checkForBattle(Scanner scanner) {
         if (random.nextDouble() < 0.50) {
-            System.out.println(ANSI_RED + "\n*** AMBUSH! You have encountered monsters! ***" + ANSI_RESET);
+            System.out.println(ConsoleColors.RED + "\n*** AMBUSH! You have encountered monsters! ***" + ConsoleColors.RESET);
             battleController.startBattle(scanner, party);
         }
     }
@@ -211,39 +205,39 @@ public class LegendsGame extends Game {
     private void handleMarketInteraction(Scanner scanner) {
         Cell currentCell = board.getCell(party.getRow(), party.getCol());
         if (!currentCell.isMarket()) {
-            System.out.println(ANSI_YELLOW + "There is no market here." + ANSI_RESET);
+            System.out.println(ConsoleColors.YELLOW + "There is no market here." + ConsoleColors.RESET);
             return;
         }
         marketController.enterMarket(scanner, party);
     }
 
     private void showDetailedInfo() {
-        System.out.println(ANSI_WHITE_BOLD + "\n=== DETAILED HERO INFORMATION ===" + ANSI_RESET);
+        System.out.println(ConsoleColors.WHITE_BOLD + "\n=== DETAILED HERO INFORMATION ===" + ConsoleColors.RESET);
 
         for (Hero h : party.getHeroes()) {
-            System.out.println("\n" + ANSI_PURPLE + "+ " + String.format("[%s] %s (Lvl %d)", h.getType(), h.getName(), h.getLevel()) + ANSI_RESET);
+            System.out.println("\n" + ConsoleColors.PURPLE + "+ " + String.format("[%s] %s (Lvl %d)", h.getType(), h.getName(), h.getLevel()) + ConsoleColors.RESET);
 
-            System.out.println(ANSI_CYAN + "+----------+----------+----------+----------+----------+------------+------------+" + ANSI_RESET);
-            System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " HP: " + ANSI_GREEN + "%-5.0f" + ANSI_RESET + ANSI_CYAN + "|" + ANSI_RESET + " MP: " + ANSI_BLUE + "%-5.0f" + ANSI_RESET + ANSI_CYAN + "|" + ANSI_RESET + " STR: %-4.0f" + ANSI_CYAN + "|" + ANSI_RESET + " DEX: %-4.0f" + ANSI_CYAN + "|" + ANSI_RESET + " AGI: %-4.0f" + ANSI_CYAN + "|" + ANSI_RESET + " GOLD: " + ANSI_YELLOW + "%-5.0f" + ANSI_RESET + ANSI_CYAN + "|" + ANSI_RESET + " XP: %-5d " + ANSI_CYAN + "|\n" + ANSI_RESET,
+            System.out.println(ConsoleColors.CYAN + "+----------+----------+----------+----------+----------+------------+------------+" + ConsoleColors.RESET);
+            System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " HP: " + ConsoleColors.GREEN + "%-5.0f" + ConsoleColors.RESET + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " MP: " + ConsoleColors.BLUE + "%-5.0f" + ConsoleColors.RESET + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " STR: %-4.0f" + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " DEX: %-4.0f" + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " AGI: %-4.0f" + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " GOLD: " + ConsoleColors.YELLOW + "%-5.0f" + ConsoleColors.RESET + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " XP: %-5d " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
                     h.getHp(), h.getMana(), h.getStrength(), h.getDexterity(), h.getAgility(), h.getMoney(), h.getExperience());
-            System.out.println(ANSI_CYAN + "+----------+----------+----------+----------+----------+------------+------------+" + ANSI_RESET);
+            System.out.println(ConsoleColors.CYAN + "+----------+----------+----------+----------+----------+------------+------------+" + ConsoleColors.RESET);
 
-            System.out.println(ANSI_CYAN + "|" + ANSI_RESET + " " + ANSI_WHITE_BOLD + "INVENTORY" + ANSI_RESET + "                                                                    " + ANSI_CYAN + "|" + ANSI_RESET);
-            System.out.println(ANSI_CYAN + "+----------------------+--------+----------+--------------------------------------+" + ANSI_RESET);
+            System.out.println(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " " + ConsoleColors.WHITE_BOLD + "INVENTORY" + ConsoleColors.RESET + "                                                                    " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.CYAN + "+----------------------+--------+----------+--------------------------------------+" + ConsoleColors.RESET);
 
             List<Item> items = h.getInventory().getItems();
             if (items.isEmpty()) {
-                System.out.println(ANSI_CYAN + "|" + ANSI_RESET + " (Empty)              " + ANSI_CYAN + "|" + ANSI_RESET + "        " + ANSI_CYAN + "|" + ANSI_RESET + "          " + ANSI_CYAN + "|" + ANSI_RESET + "                                      " + ANSI_CYAN + "|" + ANSI_RESET);
+                System.out.println(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " (Empty)              " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + "        " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + "          " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + "                                      " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET);
             } else {
                 for (Item item : items) {
                     String stats = extractItemStats(item);
                     if (stats.length() > 40) stats = stats.substring(0, 37) + "...";
 
-                    System.out.printf(ANSI_CYAN + "|" + ANSI_RESET + " %-20s " + ANSI_CYAN + "|" + ANSI_RESET + " Lv%-4d " + ANSI_CYAN + "|" + ANSI_RESET + " " + ANSI_YELLOW + "%-8.0f" + ANSI_RESET + " " + ANSI_CYAN + "|" + ANSI_RESET + " %-36s " + ANSI_CYAN + "|\n" + ANSI_RESET,
+                    System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " Lv%-4d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " " + ConsoleColors.YELLOW + "%-8.0f" + ConsoleColors.RESET + " " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-36s " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
                             item.getName(), item.getMinLevel(), item.getPrice(), stats);
                 }
             }
-            System.out.println(ANSI_CYAN + "+----------------------+--------+----------+--------------------------------------+" + ANSI_RESET);
+            System.out.println(ConsoleColors.CYAN + "+----------------------+--------+----------+--------------------------------------+" + ConsoleColors.RESET);
         }
         System.out.println("Press Enter to continue...");
     }
@@ -263,7 +257,12 @@ public class LegendsGame extends Game {
 
     @Override
     protected boolean isGameOver() {
-        return (party != null && party.isPartyWipedOut()) || quitGame;
+        if (party != null && party.isPartyWipedOut()) {
+            System.out.println(ConsoleColors.RED + "\n*** DEFEAT! ***" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.RED + "You lost!" + ConsoleColors.RESET);
+            return true;
+        }
+        return quitGame;
     }
 
     @Override
@@ -273,9 +272,9 @@ public class LegendsGame extends Game {
 
     @Override
     protected void endGame() {
-        System.out.println(ANSI_RED + "\nGame Over. Thanks for playing Legends: Monsters and Heroes!" + ANSI_RESET);
+        System.out.println(ConsoleColors.RED + "\nGame Over. Thanks for playing Legends: Monsters and Heroes!" + ConsoleColors.RESET);
         if (party != null) {
-            System.out.println(ANSI_WHITE_BOLD + "Final Status:" + ANSI_RESET);
+            System.out.println(ConsoleColors.WHITE_BOLD + "Final Status:" + ConsoleColors.RESET);
             printDashboard();
         }
 
@@ -283,18 +282,18 @@ public class LegendsGame extends Game {
         Scanner scanner = new Scanner(System.in); // Use a fresh scanner or pass it down if possible
         // Note: System.in should not be closed if we want to read again, but here we are at end of app lifecycle usually.
 
-        String input = InputValidator.getValidOption(scanner, "\n" + ANSI_YELLOW + "Do you want to play again? (y/n): " + ANSI_RESET, "y", "n");
+        String input = InputValidator.getValidOption(scanner, "\n" + ConsoleColors.YELLOW + "Do you want to play again? (y/n): " + ConsoleColors.RESET, "y", "n");
 
         if (input.equals("y")) {
             // Restart the game
-            System.out.println(ANSI_GREEN + "Starting a new game..." + ANSI_RESET);
+            System.out.println(ConsoleColors.GREEN + "Starting a new game..." + ConsoleColors.RESET);
 
             quitGame = false;
             skipNextRender = false;
 
             play(scanner);
         } else {
-            System.out.println(ANSI_CYAN + "Goodbye!" + ANSI_RESET);
+            System.out.println(ConsoleColors.CYAN + "Goodbye!" + ConsoleColors.RESET);
             System.exit(0);
         }
     }

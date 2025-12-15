@@ -1,5 +1,6 @@
 package board;
 
+import utils.ConsoleColors;
 import entities.Hero;
 import entities.Monster;
 
@@ -8,11 +9,7 @@ public class Cell {
     private Hero hero;
     private Monster monster;
 
-    // ANSI Colors
-    private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_CYAN = "\u001B[36m";
-    private static final String ANSI_RED = "\u001B[31m";
-    private static final String ANSI_PURPLE = "\u001B[35m";
+
 
     public Cell(CellType type) {
         this.type = type;
@@ -42,13 +39,13 @@ public class Cell {
         // MUST return exactly 4 visible characters to fit the board alignment
 
         if (hasHero() && hasMonster()) {
-            return ANSI_PURPLE + "H&M " + ANSI_RESET;
+            return ConsoleColors.PURPLE + "H&M " + ConsoleColors.RESET;
         } else if (hasHero()) {
             // "[H1]" = 4 chars
-            return ANSI_CYAN + "[H" + (hero.getLane() + 1) + "]" + ANSI_RESET;
+            return ConsoleColors.CYAN + "[H" + (hero.getLane() + 1) + "]" + ConsoleColors.RESET;
         } else if (hasMonster()) {
             // "(M1)" = 4 chars
-            return ANSI_RED + "(M" + (monster.getLane() + 1) + ")" + ANSI_RESET;
+            return ConsoleColors.RED + "(M" + (monster.getLane() + 1) + ")" + ConsoleColors.RESET;
         }
 
         // Default types like " - ", " N ", " X " are 3 chars, add one space
