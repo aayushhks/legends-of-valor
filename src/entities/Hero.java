@@ -34,6 +34,14 @@ public class Hero extends RPGCharacter {
     // Equipment Slots
     private Weapon equippedWeapon;
     private Armor equippedArmor;
+    
+    // Battle state tracking
+    private boolean wasFaintedInBattle;
+    
+    // Temporary battle boosts (reset after each battle)
+    private double strengthBoost = 0;
+    private double agilityBoost = 0;
+    private double dexterityBoost = 0;
 
     /**
      * Constructs a new Hero.
@@ -52,9 +60,16 @@ public class Hero extends RPGCharacter {
         this.experience = experience;
 
         this.inventory = new Inventory();
+        this.wasFaintedInBattle = false;
 
-        // HP of heroes = level * 100
-        this.hp = this.level * 100;
+        // HP based on class type - more defensive classes get more HP
+        if (type == HeroType.WARRIOR) {
+            this.hp = this.level * 150;  // Tanky melee fighters
+        } else if (type == HeroType.PALADIN) {
+            this.hp = this.level * 120;  // Defensive hybrids  
+        } else if (type == HeroType.SORCERER) {
+            this.hp = this.level * 80;   // Glass cannon mages
+        }
     }
     
     // Constructor for subclasses with explicit parameters
@@ -71,6 +86,7 @@ public class Hero extends RPGCharacter {
         this.experience = experience;
         
         this.inventory = new Inventory();
+        this.wasFaintedInBattle = false;
     }
 
     // Implementation of Attack Abstraction
@@ -105,12 +121,27 @@ public class Hero extends RPGCharacter {
     }
 
     private void levelUp() {
+        int oldLevel = this.level;
+        double oldStrength = this.strength;
+        double oldAgility = this.agility;
+        double oldDexterity = this.dexterity;
+        double oldHp = this.hp;
+        double oldMana = this.mana;
+        
         this.level++;
-        // Reset XP (or keep accumulated? Standard RPGs keep total, but rules imply a threshold)
-        this.experience = 0;
+        
+        // Subtract the XP threshold from current XP (allow overflow for next level)
+        int xpUsed = oldLevel * 10;
+        this.experience -= xpUsed;
 
-        // Spec Rule: When a hero levels up, this formula is used to reset their HP.
-        this.hp = this.level * 100;
+        // HP based on class type when leveling up (base + level*increment for gradual growth)
+        if (type == HeroType.WARRIOR) {
+            this.hp = 100 + (this.level * 50);  // 150, 200, 250, 300... (gradual increase)
+        } else if (type == HeroType.PALADIN) {
+            this.hp = 80 + (this.level * 40);   // 120, 160, 200, 240... (defensive hybrids)  
+        } else if (type == HeroType.SORCERER) {
+            this.hp = 60 + (this.level * 30);   // 90, 120, 150, 180... (glass cannon mages)
+        }
 
         // Spec Rule: MP of the heroes when they level up = current_mana * 1.1
         this.mana = this.mana * 1.1;
@@ -135,7 +166,69 @@ public class Hero extends RPGCharacter {
             dexterity *= favoredFactor;
         }
 
-        System.out.println(this.name + " leveled up to " + this.level + "!");
+        // Display simple level up notification
+        displayLevelUpStats(oldLevel, oldStrength, oldAgility, oldDexterity, oldHp, oldMana);
+        
+        // Check for consecutive level ups
+        if (this.experience >= this.level * 10) {
+            levelUp();
+        }
+    }
+    
+    private void displayLevelUpStats(int oldLevel, double oldStrength, double oldAgility, double oldDexterity, double oldHp, double oldMana) {
+        System.out.println("\n" + utils.ConsoleColors.GREEN + "LEVEL UP! " + this.name + " (" + this.type + ") Level " + oldLevel + " -> " + this.level + utils.ConsoleColors.RESET);
+        
+        // Show HP and MP first
+        System.out.printf("HP: " + utils.ConsoleColors.GREEN + "%.0f -> %.0f" + utils.ConsoleColors.RESET, oldHp, this.hp);
+        System.out.println();
+        System.out.printf("MP: " + utils.ConsoleColors.BLUE + "%.0f -> %.0f" + utils.ConsoleColors.RESET, oldMana, this.mana);
+        System.out.println();
+        
+        // Show stats with favored ones colored
+        if (type == HeroType.WARRIOR || type == HeroType.PALADIN) {
+            System.out.printf("Strength: " + utils.ConsoleColors.YELLOW + "%.0f -> %.0f" + utils.ConsoleColors.RESET, oldStrength, this.strength);
+        } else {
+            System.out.printf("Strength: %.0f -> %.0f", oldStrength, this.strength);
+        }
+        System.out.println();
+        
+        if (type == HeroType.WARRIOR || type == HeroType.SORCERER) {
+            System.out.printf("Agility: " + utils.ConsoleColors.CYAN + "%.0f -> %.0f" + utils.ConsoleColors.RESET, oldAgility, this.agility);
+        } else {
+            System.out.printf("Agility: %.0f -> %.0f", oldAgility, this.agility);
+        }
+        System.out.println();
+        
+        if (type == HeroType.SORCERER || type == HeroType.PALADIN) {
+            System.out.printf("Dexterity: " + utils.ConsoleColors.PURPLE + "%.0f -> %.0f" + utils.ConsoleColors.RESET, oldDexterity, this.dexterity);
+        } else {
+            System.out.printf("Dexterity: %.0f -> %.0f", oldDexterity, this.dexterity);
+        }
+        System.out.println();
+        System.out.println();
+    }
+
+    public double getMaxHp() {
+        if (type == HeroType.WARRIOR) {
+            return 100 + (this.level * 50);  // Matches level-up calculation
+        } else if (type == HeroType.PALADIN) {
+            return 80 + (this.level * 40);   // Matches level-up calculation
+        } else if (type == HeroType.SORCERER) {
+            return 60 + (this.level * 30);   // Matches level-up calculation
+        }
+        return 100 + (this.level * 30); // Default fallback
+    }
+    
+    public double getMaxMana() {
+        // Base mana from constructor * level up multiplier (1.1^(level-1))
+        double baseMana;
+        switch (type) {
+            case WARRIOR: baseMana = 300; break; // Muamman_Duathall's base
+            case SORCERER: baseMana = 1000; break; // Average sorcerer base
+            case PALADIN: baseMana = 300; break; // Average paladin base
+            default: baseMana = 300; break;
+        }
+        return baseMana * Math.pow(1.1, level - 1);
     }
 
     public void revive() {
@@ -161,6 +254,14 @@ public class Hero extends RPGCharacter {
         return equippedArmor;
     }
 
+    public void unequipWeapon() {
+        this.equippedWeapon = null;
+    }
+
+    public void unequipArmor() {
+        this.equippedArmor = null;
+    }
+
     public Inventory getInventory() {
         return inventory;
     }
@@ -168,16 +269,27 @@ public class Hero extends RPGCharacter {
     public HeroType getType() { return type; }
 
     public double getMana() { return mana; }
-    public void setMana(double mana) { this.mana = mana; }
+    public void setMana(double mana) { 
+        this.mana = Math.max(0, Math.min(mana, getMaxMana())); // Cap between 0 and max mana
+    }
 
-    public double getStrength() { return strength; }
+    public double getStrength() { return strength + strengthBoost; }
     public void setStrength(double strength) { this.strength = strength; }
+    public double getBaseStrength() { return strength; }
+    public void addStrengthBoost(double boost) { this.strengthBoost += boost; }
+    public boolean hasStrengthBoost() { return strengthBoost > 0; }
 
-    public double getAgility() { return agility; }
+    public double getAgility() { return agility + agilityBoost; }
     public void setAgility(double agility) { this.agility = agility; }
+    public double getBaseAgility() { return agility; }
+    public void addAgilityBoost(double boost) { this.agilityBoost += boost; }
+    public boolean hasAgilityBoost() { return agilityBoost > 0; }
 
-    public double getDexterity() { return dexterity; }
+    public double getDexterity() { return dexterity + dexterityBoost; }
     public void setDexterity(double dexterity) { this.dexterity = dexterity; }
+    public double getBaseDexterity() { return dexterity; }
+    public void addDexterityBoost(double boost) { this.dexterityBoost += boost; }
+    public boolean hasDexterityBoost() { return dexterityBoost > 0; }
 
     public double getMoney() { return money; }
     public void setMoney(double money) { this.money = money; }
@@ -194,11 +306,61 @@ public class Hero extends RPGCharacter {
 
     public int getExperience() { return experience; }
 
+    // Battle state management
+    public boolean wasFaintedInBattle() { return wasFaintedInBattle; }
+    public void markFaintedInBattle() { this.wasFaintedInBattle = true; }
+    public void resetBattleState() { 
+        this.wasFaintedInBattle = false; 
+        // Clear all temporary battle boosts
+        this.strengthBoost = 0;
+        this.agilityBoost = 0;
+        this.dexterityBoost = 0;
+    }
+
     @Override
     public String toString() {
-        return String.format(
-                "[%s] %-15s | Lvl: %d | HP: %-4.0f | MP: %-4.0f | Str: %-4.0f | Dex: %-4.0f | Agi: %-4.0f | Gold: %.0f",
-                type, name, level, hp, mana, strength, dexterity, agility, money
-        );
+        String strDisplay = hasStrengthBoost() ? 
+            String.format("%.0f->" + utils.ConsoleColors.RED + "%.0f" + utils.ConsoleColors.RESET, getBaseStrength(), getStrength()) : 
+            String.format("%-4.0f", getStrength());
+        String dexDisplay = hasDexterityBoost() ? 
+            String.format("%.0f->" + utils.ConsoleColors.PURPLE + "%.0f" + utils.ConsoleColors.RESET, getBaseDexterity(), getDexterity()) : 
+            String.format("%-4.0f", getDexterity());
+        String agiDisplay = hasAgilityBoost() ? 
+            String.format("%.0f->" + utils.ConsoleColors.CYAN + "%.0f" + utils.ConsoleColors.RESET, getBaseAgility(), getAgility()) : 
+            String.format("%-4.0f", getAgility());
+        
+        StringBuilder result = new StringBuilder();
+        result.append(String.format(
+                "[%s] %-15s | Lvl: %d | HP: %-4.0f | MP: %-4.0f | Str: %s | Dex: %s | Agi: %s | Gold: %.0f",
+                type, name, level, hp, mana, strDisplay, dexDisplay, agiDisplay, money
+        ));
+        
+        // Show equipment if any
+        if (equippedWeapon != null || equippedArmor != null) {
+            result.append("\nEquipped: ");
+            if (equippedWeapon != null) {
+                result.append(utils.ConsoleColors.RED).append(equippedWeapon.getName()).append(utils.ConsoleColors.RESET);
+                if (equippedArmor != null) result.append(" | ");
+            }
+            if (equippedArmor != null) {
+                result.append(utils.ConsoleColors.BLUE).append(equippedArmor.getName()).append(utils.ConsoleColors.RESET);
+            }
+        }
+        
+        // Show active boosts
+        if (hasStrengthBoost() || hasDexterityBoost() || hasAgilityBoost()) {
+            result.append("\n");
+            if (hasStrengthBoost()) {
+                result.append(utils.ConsoleColors.RED).append("[Strength Boost] ").append(utils.ConsoleColors.RESET);
+            }
+            if (hasDexterityBoost()) {
+                result.append(utils.ConsoleColors.PURPLE).append("[Dexterity Boost] ").append(utils.ConsoleColors.RESET);
+            }
+            if (hasAgilityBoost()) {
+                result.append(utils.ConsoleColors.CYAN).append("[Agility Boost]").append(utils.ConsoleColors.RESET);
+            }
+        }
+        
+        return result.toString();
     }
 }

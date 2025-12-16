@@ -37,9 +37,12 @@ public abstract class RPGCharacter {
     }
 
     public void setHp(double hp) {
-        // Ensure HP never drops below 0
-        this.hp = Math.max(0, hp);
+        // Cap between 0 and maximum HP for this character
+        this.hp = Math.max(0, Math.min(hp, getMaxHp()));
     }
+    
+    // Abstract method for maximum HP calculation (implemented by subclasses)
+    public abstract double getMaxHp();
 
     public boolean isFainted() {
         return hp <= 0;

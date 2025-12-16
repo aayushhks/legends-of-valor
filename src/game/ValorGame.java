@@ -119,9 +119,13 @@ public class ValorGame extends Game {
                     (i + 1), h.getName(), h.getLevel(), h.getHp(), h.getMana(), h.getStrength(), h.getDexterity(), h.getAgility());
         }
         System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
+        System.out.println((choiceList.size() + 1) + ". " + ConsoleColors.YELLOW + "Back to Class Selection" + ConsoleColors.RESET);
 
-        int heroIndex = InputValidator.getValidInt(scanner, "Select hero ID: ", 1, choiceList.size()) - 1;
-        return choiceList.remove(heroIndex);
+        int heroChoice = InputValidator.getValidInt(scanner, "Select hero ID: ", 1, choiceList.size() + 1);
+        if (heroChoice == choiceList.size() + 1) {
+            return null; // Go back to class selection
+        }
+        return choiceList.remove(heroChoice - 1);
     }
 
     private void spawnHeroes() {
@@ -730,8 +734,11 @@ public class ValorGame extends Game {
         String input = InputValidator.getValidOption(scanner, "\n" + ConsoleColors.YELLOW + "Do you want to play again? (yes/no): " + ConsoleColors.RESET, "y", "yes", "n", "no");
         
         if (input.equals("y") || input.equals("yes")) {
+            // Restart the entire application to go back to game selection
+            System.out.println(ConsoleColors.GREEN + "Returning to main menu..." + ConsoleColors.RESET);
             common.GameRunner.run();
         } else {
+            System.out.println(ConsoleColors.CYAN + "Goodbye!" + ConsoleColors.RESET);
             System.exit(0);
         }
     }

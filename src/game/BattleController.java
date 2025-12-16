@@ -30,6 +30,11 @@ public class BattleController {
     }
 
     public void startBattle(Scanner scanner, Party party) {
+        // Reset battle state for all heroes at the start of each battle
+        for (Hero hero : party.getHeroes()) {
+            hero.resetBattleState();
+        }
+        
         List<Monster> enemies = spawnMonsters(party);
         System.out.println(ConsoleColors.RED + "\n*** Battle Started! Enemies approaching: ***" + ConsoleColors.RESET);
         for (Monster m : enemies) System.out.println("- " + m);
@@ -87,7 +92,7 @@ public class BattleController {
             if (enemies.stream().allMatch(Monster::isFainted)) break;
 
             System.out.println("\nIt is " + ConsoleColors.PURPLE + hero.getName() + ConsoleColors.RESET + "'s turn.");
-            System.out.println(hero);
+            displayHeroInfo(hero);
 
             boolean actionTaken = false;
             while (!actionTaken) {
@@ -103,11 +108,23 @@ public class BattleController {
                     case 1: actionTaken = performAttack(scanner, hero, enemies); break;
                     case 2: actionTaken = performSpell(scanner, hero, enemies); break;
                     case 3: actionTaken = performPotion(scanner, hero); break;
-                    case 4: performEquip(scanner, hero); break;
-                    case 5: showBattleInfo(party, enemies); break;
+                    case 4: 
+                        boolean equipmentChanged = performEquip(scanner, hero); 
+                        // Only refresh hero display if equipment actually changed
+                        if (equipmentChanged) {
+                            System.out.println("\nIt is " + ConsoleColors.PURPLE + hero.getName() + ConsoleColors.RESET + "'s turn.");
+                            displayHeroInfo(hero);
+                        }
+                        break;
+                    case 5: showBattleInfo(party, enemies, hero); break;
                     case 6:
-                        System.out.println(ConsoleColors.RED + "Quitting Game..." + ConsoleColors.RESET);
-                        System.exit(0);
+                        if (promptRestart(scanner)) {
+                            System.out.println(ConsoleColors.GREEN + "Returning to main menu..." + ConsoleColors.RESET);
+                            common.GameRunner.run();
+                        } else {
+                            System.out.println(ConsoleColors.CYAN + "Goodbye!" + ConsoleColors.RESET);
+                            System.exit(0);
+                        }
                         return false;
                 }
             }
@@ -119,7 +136,6 @@ public class BattleController {
         Monster target = selectMonster(scanner, enemies);
         if (target == null) return false;
 
-        // CHANGED: Cap monster dodge at 20% (Easy mode: 80% hit chance)
         double monsterDodge = Math.min(0.20, target.getDodgeChance());
 
         if (rng.nextDouble() < monsterDodge) {
@@ -144,6 +160,8 @@ public class BattleController {
         List<Spell> spells = hero.getInventory().getSpells();
         if (spells.isEmpty()) {
             System.out.println(ConsoleColors.YELLOW + "You have no spells!" + ConsoleColors.RESET);
+            System.out.println();
+            displayHeroInfo(hero);
             return false;
         }
 
@@ -192,45 +210,156 @@ public class BattleController {
         List<Potion> potions = hero.getInventory().getPotions();
         if (potions.isEmpty()) {
             System.out.println(ConsoleColors.YELLOW + "No potions in inventory." + ConsoleColors.RESET);
+            System.out.println();
+            displayHeroInfo(hero);
             return false;
         }
 
         System.out.println(ConsoleColors.WHITE_BOLD + "--- Potions ---" + ConsoleColors.RESET);
         for(int i=0; i<potions.size(); i++) System.out.println((i+1) + ". " + potions.get(i));
+        System.out.println((potions.size() + 1) + ". " + ConsoleColors.YELLOW + "Back" + ConsoleColors.RESET);
 
-        int choice = InputValidator.getValidInt(scanner, ConsoleColors.CYAN + "Use Potion: " + ConsoleColors.RESET, 1, potions.size());
+        int choice = InputValidator.getValidInt(scanner, ConsoleColors.CYAN + "Use Potion: " + ConsoleColors.RESET, 1, potions.size() + 1);
+        if (choice > potions.size()) {
+            return false; // Back option selected
+        }
         Potion potion = potions.get(choice - 1);
 
         double val = potion.getAttributeIncrease();
-        if (potion.affects("Health")) hero.setHp(hero.getHp() + val);
-        if (potion.affects("Mana")) hero.setMana(hero.getMana() + val);
-        if (potion.affects("Strength")) hero.setStrength(hero.getStrength() + val);
-        if (potion.affects("Dexterity")) hero.setDexterity(hero.getDexterity() + val);
-        if (potion.affects("Agility")) hero.setAgility(hero.getAgility() + val);
+        StringBuilder boostMessage = new StringBuilder();
+        
+        if (potion.affects("Health")) {
+            hero.setHp(hero.getHp() + val); // setHp automatically caps at max
+        }
+        if (potion.affects("Mana")) {
+            hero.setMana(hero.getMana() + val); // setMana automatically caps at max
+        }
+        if (potion.affects("Strength")) {
+            hero.addStrengthBoost(val);
+            boostMessage.append(" ").append(ConsoleColors.RED).append("Strength Boost!!").append(ConsoleColors.RESET);
+        }
+        if (potion.affects("Dexterity")) {
+            hero.addDexterityBoost(val);
+            boostMessage.append(" ").append(ConsoleColors.PURPLE).append("Dexterity Boost!!").append(ConsoleColors.RESET);
+        }
+        if (potion.affects("Agility")) {
+            hero.addAgilityBoost(val);
+            boostMessage.append(" ").append(ConsoleColors.CYAN).append("Agility Boost!!").append(ConsoleColors.RESET);
+        }
 
-        System.out.println(ConsoleColors.GREEN + hero.getName() + " used " + potion.getName() + "!" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.GREEN + hero.getName() + " used " + potion.getName() + "!" + ConsoleColors.RESET + boostMessage.toString());
         hero.getInventory().removeItem(potion);
-        return true;
+        
+        // Redisplay hero info after potion use
+        System.out.println();
+        displayHeroInfo(hero);
+        
+        return false; // Potion use doesn't end turn - can still take another action
     }
 
-    private void performEquip(Scanner scanner, Hero hero) {
+    private boolean performEquip(Scanner scanner, Hero hero) {
+        boolean equipmentChanged = false;
         System.out.println("1. Weapons");
         System.out.println("2. Armor");
         int type = InputValidator.getValidInt(scanner, ConsoleColors.CYAN + "Type: " + ConsoleColors.RESET, 1, 2);
 
         if (type == 1) {
             List<Weapon> weps = hero.getInventory().getWeapons();
-            if (weps.isEmpty()) { System.out.println(ConsoleColors.YELLOW + "No weapons." + ConsoleColors.RESET); return; }
-            for(int i=0; i<weps.size(); i++) System.out.println((i+1) + ". " + weps.get(i));
-            int sel = InputValidator.getValidInt(scanner, "Equip: ", 1, weps.size());
-            hero.equipWeapon(weps.get(sel-1));
+            if (weps.isEmpty() && hero.getEquippedWeapon() == null) { 
+                System.out.println(ConsoleColors.YELLOW + "No weapons." + ConsoleColors.RESET); 
+                return false; 
+            }
+            
+            System.out.println(ConsoleColors.WHITE_BOLD + "Weapons:" + ConsoleColors.RESET);
+            int optionNum = 1;
+            for(int i=0; i<weps.size(); i++) {
+                String equippedTag = "";
+                // Use object reference equality instead of name equality to avoid duplicates
+                if (hero.getEquippedWeapon() == weps.get(i)) {
+                    equippedTag = ConsoleColors.GREEN + " [equipped]" + ConsoleColors.RESET;
+                }
+                System.out.println(optionNum + ". " + weps.get(i).getName() + " (Dmg: " + (int)weps.get(i).getDamage() + ")" + equippedTag);
+                optionNum++;
+            }
+            if (hero.getEquippedWeapon() != null) {
+                System.out.println(optionNum + ". " + ConsoleColors.RED + "Unequip " + hero.getEquippedWeapon().getName() + ConsoleColors.RESET);
+                optionNum++;
+            }
+            System.out.println(optionNum + ". " + ConsoleColors.YELLOW + "Back" + ConsoleColors.RESET);
+            
+            int sel = InputValidator.getValidInt(scanner, "Choose: ", 1, optionNum);
+            if (sel <= weps.size()) {
+                Weapon selectedWeapon = weps.get(sel-1);
+                // Use object reference equality instead of name equality
+                boolean alreadyEquipped = hero.getEquippedWeapon() == selectedWeapon;
+                if (alreadyEquipped) {
+                    System.out.println(ConsoleColors.YELLOW + selectedWeapon.getName() + " is already equipped." + ConsoleColors.RESET);
+                    System.out.println();
+                    displayHeroInfo(hero);
+                } else {
+                    hero.equipWeapon(selectedWeapon);
+                    System.out.println(ConsoleColors.GREEN + selectedWeapon.getName() + " equipped!" + ConsoleColors.RESET);
+                    equipmentChanged = true;
+                }
+            } else if (hero.getEquippedWeapon() != null && sel == weps.size() + 1) {
+                // This is the unequip option (comes right after the weapon list)
+                String weaponName = hero.getEquippedWeapon().getName();
+                hero.unequipWeapon();
+                System.out.println(ConsoleColors.YELLOW + weaponName + " unequipped!" + ConsoleColors.RESET);
+                equipmentChanged = true;
+            }
+            // If sel == optionNum and no weapon equipped, or if it's the back option, just return
         } else {
             List<Armor> arms = hero.getInventory().getArmor();
-            if (arms.isEmpty()) { System.out.println(ConsoleColors.YELLOW + "No armor." + ConsoleColors.RESET); return; }
-            for(int i=0; i<arms.size(); i++) System.out.println((i+1) + ". " + arms.get(i));
-            int sel = InputValidator.getValidInt(scanner, "Equip: ", 1, arms.size());
-            hero.equipArmor(arms.get(sel-1));
+            if (arms.isEmpty() && hero.getEquippedArmor() == null) { 
+                System.out.println(ConsoleColors.YELLOW + "No armor." + ConsoleColors.RESET); 
+                System.out.println();
+                displayHeroInfo(hero);
+                return false; 
+            }
+            
+            System.out.println(ConsoleColors.WHITE_BOLD + "Armor:" + ConsoleColors.RESET);
+            int optionNum = 1;
+            for(int i=0; i<arms.size(); i++) {
+                String equippedTag = "";
+                // Use object reference equality instead of name equality to avoid duplicates
+                if (hero.getEquippedArmor() == arms.get(i)) {
+                    equippedTag = ConsoleColors.GREEN + " [equipped]" + ConsoleColors.RESET;
+                }
+                System.out.println(optionNum + ". " + arms.get(i).getName() + " (Def: " + (int)arms.get(i).getDamageReduction() + ")" + equippedTag);
+                optionNum++;
+            }
+            if (hero.getEquippedArmor() != null) {
+                System.out.println(optionNum + ". " + ConsoleColors.BLUE + "Unequip " + hero.getEquippedArmor().getName() + ConsoleColors.RESET);
+                optionNum++;
+            }
+            System.out.println(optionNum + ". " + ConsoleColors.YELLOW + "Back" + ConsoleColors.RESET);
+            
+            int sel = InputValidator.getValidInt(scanner, "Choose: ", 1, optionNum);
+            if (sel <= arms.size()) {
+                Armor selectedArmor = arms.get(sel-1);
+                // Use object reference equality instead of name equality
+                boolean alreadyEquipped = hero.getEquippedArmor() == selectedArmor;
+                if (alreadyEquipped) {
+                    System.out.println(ConsoleColors.YELLOW + selectedArmor.getName() + " is already equipped." + ConsoleColors.RESET);
+                    System.out.println();
+                    displayHeroInfo(hero);
+                } else {
+                    hero.equipArmor(selectedArmor);
+                    System.out.println(ConsoleColors.GREEN + selectedArmor.getName() + " equipped!" + ConsoleColors.RESET);
+                    equipmentChanged = true;
+                }
+            } else if (hero.getEquippedArmor() != null && sel == arms.size() + 1) {
+                // This is the unequip option (comes right after the armor list)
+                String armorName = hero.getEquippedArmor().getName();
+                hero.unequipArmor();
+                System.out.println(ConsoleColors.YELLOW + armorName + " unequipped!" + ConsoleColors.RESET);
+                equipmentChanged = true;
+            }
+            // If sel == optionNum and no armor equipped, or if it's the back option, just return
         }
+        
+        return equipmentChanged;
     }
 
     private void processMonstersTurn(Party party, List<Monster> enemies) {
@@ -245,7 +374,7 @@ public class BattleController {
 
             Hero target = aliveHeroes.get(rng.nextInt(aliveHeroes.size()));
 
-            // CHANGED: Hero Dodge Cap increased to 70% (Game is easier)
+            //  Hero Dodge Cap increased to 70% 
             double heroDodgeChance = target.getAgility() / (target.getAgility() + 1000.0);
             heroDodgeChance = Math.min(0.70, heroDodgeChance);
 
@@ -258,39 +387,93 @@ public class BattleController {
             double mitigation = (target.getEquippedArmor() != null) ? target.getEquippedArmor().getDamageReduction() : 0;
             double finalDmg = Math.max(0, rawDmg - (mitigation * 0.2));
 
+            // Silently degrade equipped armor when attacked (even if damage is 0)
+            if (target.getEquippedArmor() != null) {
+                target.getEquippedArmor().degrade();
+            }
+
             target.setHp(target.getHp() - finalDmg);
             System.out.printf("%s attacks %s for " + ConsoleColors.RED + "%.0f damage!" + ConsoleColors.RESET + "\n", monster.getName(), target.getName(), finalDmg);
 
             if (target.isFainted()) {
                 System.out.println(ConsoleColors.RED + target.getName() + " has fainted!" + ConsoleColors.RESET);
+                target.markFaintedInBattle();
             }
         }
     }
 
     private void performRegeneration(Party party) {
+        System.out.println(ConsoleColors.GREEN + "\n=== End of Round Regeneration ===" + ConsoleColors.RESET);
+        
+        boolean anyRegeneration = false;
         for (Hero h : party.getHeroes()) {
             if (!h.isFainted()) {
+                double oldHp = h.getHp();
+                double oldMana = h.getMana();
+                
                 h.setHp(h.getHp() * 1.1);
                 h.setMana(h.getMana() * 1.1);
+                
+                double hpGain = h.getHp() - oldHp;
+                double manaGain = h.getMana() - oldMana;
+                
+                System.out.printf(ConsoleColors.CYAN + "%s" + ConsoleColors.RESET + " regains " + 
+                        ConsoleColors.RED + "%.1f HP" + ConsoleColors.RESET + " and " + 
+                        ConsoleColors.BLUE + "%.1f MP" + ConsoleColors.RESET + "\n",
+                        h.getName(), hpGain, manaGain);
+                anyRegeneration = true;
+                
+                // Degrade equipped weapon durability
+                if (h.getEquippedWeapon() != null) {
+                    h.getEquippedWeapon().degrade();
+                    if (h.getEquippedWeapon().isBroken()) {
+                        System.out.println(ConsoleColors.RED + h.getName() + "'s " + h.getEquippedWeapon().getName() + " has broken!" + ConsoleColors.RESET);
+                        h.unequipWeapon(); // Auto-unequip broken weapon
+                    }
+                }
+                
+                // Check for broken armor at end of round
+                if (h.getEquippedArmor() != null && h.getEquippedArmor().isBroken()) {
+                    System.out.println(ConsoleColors.RED + h.getName() + "'s " + h.getEquippedArmor().getName() + " has broken!" + ConsoleColors.RESET);
+                    h.unequipArmor(); // Auto-unequip broken armor
+                }
             }
         }
-        System.out.println(ConsoleColors.CYAN + "Heroes regain some health and mana." + ConsoleColors.RESET);
+        
+        if (!anyRegeneration) {
+            System.out.println(ConsoleColors.YELLOW + "No heroes available for regeneration." + ConsoleColors.RESET);
+        }
+        System.out.println();
     }
 
     private void processVictory(Party party, List<Monster> enemies) {
         System.out.println(ConsoleColors.GREEN + "\n*** VICTORY! ***" + ConsoleColors.RESET);
-        double goldReward = enemies.stream().mapToDouble(Monster::getLevel).sum() * 100;
-        int xpReward = enemies.size() * 2;
+        
+        // Calculate per-hero rewards based on total enemy levels
+        double totalLevels = enemies.stream().mapToDouble(Monster::getLevel).sum();
+        double goldPerHero = totalLevels * 100;
+        // More generous XP: 2 XP per enemy level (so level 1 monster = 2 XP, level 2 = 4 XP, etc.)
+        int xpPerHero = (int)(totalLevels * 2);
 
-        System.out.printf("Party gains %.0f Gold and %d XP!\n", goldReward, xpReward);
-
+        // First, revive all fainted heroes
         for (Hero h : party.getHeroes()) {
             if (h.isFainted()) {
                 System.out.println(h.getName() + " is revived.");
                 h.revive();
+            }
+        }
+        
+        // Then, give rewards and display individual results
+        System.out.println("\n" + ConsoleColors.YELLOW + "Battle Rewards:" + ConsoleColors.RESET);
+        for (Hero h : party.getHeroes()) {
+            if (!h.wasFaintedInBattle()) {
+                h.addMoney(goldPerHero);
+                h.gainExperience(xpPerHero);
+                System.out.printf("%s gains " + ConsoleColors.YELLOW + "%.0f gold" + ConsoleColors.RESET + " and " + ConsoleColors.CYAN + "%d XP" + ConsoleColors.RESET + "\n", 
+                    h.getName(), goldPerHero, xpPerHero);
             } else {
-                h.addMoney(goldReward);
-                h.gainExperience(xpReward);
+                System.out.printf("%s receives " + ConsoleColors.RED + "no rewards" + ConsoleColors.RESET + " (was fainted during battle)\n", 
+                    h.getName());
             }
         }
     }
@@ -303,16 +486,81 @@ public class BattleController {
         for(int i=0; i<alive.size(); i++) {
             System.out.println((i+1) + ". " + alive.get(i));
         }
-        int choice = InputValidator.getValidInt(scanner, ConsoleColors.CYAN + "Target: " + ConsoleColors.RESET, 1, alive.size());
-        return alive.get(choice - 1);
+        System.out.println((alive.size() + 1) + ". " + ConsoleColors.YELLOW + "Back" + ConsoleColors.RESET);
+        
+        int choice = InputValidator.getValidInt(scanner, ConsoleColors.CYAN + "Target: " + ConsoleColors.RESET, 1, alive.size() + 1);
+        if (choice <= alive.size()) {
+            return alive.get(choice - 1);
+        } else {
+            return null; // Back option selected
+        }
     }
 
-    private void showBattleInfo(Party party, List<Monster> enemies) {
+    private void showBattleInfo(Party party, List<Monster> enemies, Hero currentHero) {
         System.out.println("\n" + ConsoleColors.WHITE_BOLD + "--- Battle Status ---" + ConsoleColors.RESET);
         System.out.println(ConsoleColors.PURPLE + "HEROES:" + ConsoleColors.RESET);
         party.getHeroes().forEach(System.out::println);
+        System.out.println();
         System.out.println(ConsoleColors.RED + "MONSTERS:" + ConsoleColors.RESET);
         enemies.forEach(System.out::println);
         System.out.println("---------------------");
+        
+        // Redisplay current hero info without turn announcement
+        System.out.println();
+        displayHeroInfo(currentHero);
+    }
+    
+    private boolean promptRestart(Scanner scanner) {
+        String input = common.InputValidator.getValidOption(scanner, 
+            "\n" + utils.ConsoleColors.YELLOW + "Do you want to play again? (yes/no): " + utils.ConsoleColors.RESET, 
+            "y", "yes", "n", "no");
+        return input.equals("y") || input.equals("yes");
+    }
+    
+    /**
+     * Helper method to display hero information with HP, MP, and equipped items.
+     * Shows boosted stats with highlighting when active.
+     */
+    private void displayHeroInfo(Hero hero) {
+        System.out.printf("%s [%s] | HP: " + ConsoleColors.GREEN + "%.0f" + ConsoleColors.RESET + " | MP: " + ConsoleColors.BLUE + "%.0f" + ConsoleColors.RESET + "\n", 
+            hero.getName(), hero.getType(), hero.getHp(), hero.getMana());
+        
+        // Show boosted stats if any are active
+        if (hero.hasStrengthBoost() || hero.hasDexterityBoost() || hero.hasAgilityBoost()) {
+            System.out.print("Boosts: ");
+            boolean first = true;
+            
+            if (hero.hasStrengthBoost()) {
+                if (!first) System.out.print(" | ");
+                System.out.printf("Str: %.0f->" + ConsoleColors.RED + "%.0f" + ConsoleColors.RESET, 
+                    hero.getBaseStrength(), hero.getStrength());
+                first = false;
+            }
+            if (hero.hasDexterityBoost()) {
+                if (!first) System.out.print(" | ");
+                System.out.printf("Dex: %.0f->" + ConsoleColors.PURPLE + "%.0f" + ConsoleColors.RESET, 
+                    hero.getBaseDexterity(), hero.getDexterity());
+                first = false;
+            }
+            if (hero.hasAgilityBoost()) {
+                if (!first) System.out.print(" | ");
+                System.out.printf("Agi: %.0f->" + ConsoleColors.CYAN + "%.0f" + ConsoleColors.RESET, 
+                    hero.getBaseAgility(), hero.getAgility());
+            }
+            System.out.println();
+        }
+        
+        // Show equipped items if any
+        if (hero.getEquippedWeapon() != null || hero.getEquippedArmor() != null) {
+            System.out.print("Equipped: ");
+            if (hero.getEquippedWeapon() != null) {
+                System.out.print(ConsoleColors.RED + hero.getEquippedWeapon().getName() + ConsoleColors.RESET);
+                if (hero.getEquippedArmor() != null) System.out.print(" | ");
+            }
+            if (hero.getEquippedArmor() != null) {
+                System.out.print(ConsoleColors.BLUE + hero.getEquippedArmor().getName() + ConsoleColors.RESET);
+            }
+            System.out.println();
+        }
     }
 }

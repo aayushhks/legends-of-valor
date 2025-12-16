@@ -23,23 +23,65 @@ public class GameRunner {
 
             System.out.println(ConsoleColors.CYAN + "      Select Your Destiny:" + ConsoleColors.RESET);
             System.out.println(ConsoleColors.PURPLE + "  ╔════════════════════════════════════════════╗" + ConsoleColors.RESET);
-            System.out.println(ConsoleColors.PURPLE + "  ║ " + ConsoleColors.WHITE_BOLD + "1. Legends: Monsters and Heroes (RPG)      " + ConsoleColors.PURPLE + "║" + ConsoleColors.RESET);
-            System.out.println(ConsoleColors.PURPLE + "  ║ " + ConsoleColors.WHITE_BOLD + "2. Legends of Valor (MOBA Strategy)        " + ConsoleColors.PURPLE + "║" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.PURPLE + "  ║ " + ConsoleColors.BLUE + "1." + ConsoleColors.WHITE_BOLD + " Legends: Monsters and Heroes (RPG)      " + ConsoleColors.PURPLE + "║" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.PURPLE + "  ║ " + ConsoleColors.BLUE + "2." + ConsoleColors.WHITE_BOLD + " Legends of Valor (MOBA Strategy)        " + ConsoleColors.PURPLE + "║" + ConsoleColors.RESET);
             System.out.println(ConsoleColors.PURPLE + "  ╚════════════════════════════════════════════╝" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.WHITE_BOLD + "    3. Game Information & Instructions" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.WHITE_BOLD + "    4. Exit Game" + ConsoleColors.RESET);
             System.out.println();
 
-            int choice = InputValidator.getValidInt(scanner, ConsoleColors.YELLOW + "Choose Game Mode: " + ConsoleColors.RESET, 1, 2);
+            int choice = InputValidator.getValidInt(scanner, ConsoleColors.YELLOW + "Choose Option: " + ConsoleColors.RESET, 1, 4);
 
-            if (choice == 1) {
-                printLegendsRules();
-                new LegendsGame().play(scanner);
-            } else {
-                printValorRules();
-                new ValorGame().play(scanner);
+            switch (choice) {
+                case 1:
+                    printLegendsRules();
+                    new LegendsGame().play(scanner);
+                    break;
+                case 2:
+                    printValorRules();
+                    new ValorGame().play(scanner);
+                    break;
+                case 3:
+                    showGameInfo(scanner);
+                    break;
+                case 4:
+                    System.out.println(ConsoleColors.CYAN + "Thank you for playing! Goodbye!" + ConsoleColors.RESET);
+                    System.exit(0);
+                    break;
             }
 
         } catch (Exception e) {
             ErrorHandler.handleFatalError(e);
+        }
+    }
+
+    /**
+     * Shows detailed game information using the Strategy pattern.
+     * Allows users to learn about either game mode before playing.
+     */
+    private static void showGameInfo(Scanner scanner) {
+        System.out.println(ConsoleColors.CYAN + "\n      Game Information:" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.PURPLE + "  ╔════════════════════════════════════════════╗" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.PURPLE + "  ║ " + ConsoleColors.WHITE_BOLD + "1. Legends: Monsters and Heroes Info       " + ConsoleColors.PURPLE + "║" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.PURPLE + "  ║ " + ConsoleColors.WHITE_BOLD + "2. Legends of Valor Info                   " + ConsoleColors.PURPLE + "║" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.PURPLE + "  ║ " + ConsoleColors.WHITE_BOLD + "3. Return to Main Menu                     " + ConsoleColors.PURPLE + "║" + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.PURPLE + "  ╚════════════════════════════════════════════╝" + ConsoleColors.RESET);
+        System.out.println();
+
+        int infoChoice = InputValidator.getValidInt(scanner, ConsoleColors.YELLOW + "Choose Info Topic: " + ConsoleColors.RESET, 1, 3);
+
+        switch (infoChoice) {
+            case 1:
+                new LegendsGameInfo().displayInfo();
+                run(); // Return to main menu
+                break;
+            case 2:
+                new ValorGameInfo().displayInfo();
+                run(); // Return to main menu
+                break;
+            case 3:
+                run(); // Return to main menu
+                break;
         }
     }
 

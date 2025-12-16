@@ -48,6 +48,12 @@ public class Monster extends RPGCharacter {
         // Monster damage is primarily their base damage attribute
         return this.baseDamage;
     }
+    
+    @Override
+    public double getMaxHp() {
+        // Monsters' max HP is their starting HP (level * 100)
+        return level * 100;
+    }
 
     public MonsterType getType() {
         return type;

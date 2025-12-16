@@ -22,7 +22,7 @@ public class RandomGenerator {
     }
 
     /**
-     * Set a fixed seed for reproducible results (Testing/Debugging).
+     * Set a fixed seed for reproducible results.
      * @param seed The long seed value.
      */
     public void setSeed(long seed) {

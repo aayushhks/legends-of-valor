@@ -9,10 +9,7 @@ import items.*;
 import items.Spell.SpellType;
 import utils.GameDataLoader;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -22,8 +19,12 @@ import java.util.stream.Collectors;
 public class MarketController {
 
     private final List<Item> globalItemCatalog;
+    private Map<String, List<Item>> positionBasedInventories; // Cache inventories by position
+    private int currentPage = 0;
+    private final int itemsPerPage = 8;
 
     public MarketController() {
+        this.positionBasedInventories = new HashMap<>();
         this.globalItemCatalog = new ArrayList<>();
         initializeCatalog();
     }
@@ -50,8 +51,13 @@ public class MarketController {
      * Generates a random subset of items for this specific market visit.
      */
     public void enterMarket(Scanner scanner, Party party) {
-        // Generate a unique inventory for this market session (e.g., 5-10 random items)
-        List<Item> marketInventory = generateMarketInventory();
+        // Find highest level hero in party
+        int highestLevel = party.getHeroes().stream()
+                .mapToInt(Hero::getLevel)
+                .max().orElse(1);
+        
+        // Generate inventory based on highest level hero
+        List<Item> marketInventory = generateMarketInventoryForLevel(highestLevel);
 
         boolean inMarket = true;
         while (inMarket) {
@@ -72,12 +78,37 @@ public class MarketController {
     }
 
     /**
+     * Position-based market for Legends game - inventory scales with highest level hero.
+     */
+    public void enterMarketAtPosition(Scanner scanner, Party party, int row, int col) {
+        // Find highest level hero in party
+        int highestLevel = party.getHeroes().stream()
+                .mapToInt(Hero::getLevel)
+                .max().orElse(1);
+        
+        // Include highest level in cache key so markets update when party levels up
+        String positionKey = row + "," + col + "," + highestLevel;
+        Hero hero = party.getHeroes().get(0); // Assuming single hero for Legends
+        
+        // Get or generate inventory for this position and level
+        List<Item> marketInventory = positionBasedInventories.computeIfAbsent(
+            positionKey, k -> generateMarketInventoryForPosition(highestLevel, row, col)
+        );
+        
+        this.currentPage = 0; // Reset to first page
+        enterMarketWithPagination(scanner, hero, marketInventory);
+    }
+
+    /**
      * Overloaded method for single hero market access (for Legends of Valor).
      * No hero selection needed - directly uses the provided hero.
      */
     public void enterMarket(Scanner scanner, Hero hero) {
-        List<Item> marketInventory = generateMarketInventory();
-
+        List<Item> marketInventory = generateMarketInventoryForLevel(hero.getLevel());
+        enterMarketWithPagination(scanner, hero, marketInventory);
+    }
+    
+    private void enterMarketWithPagination(Scanner scanner, Hero hero, List<Item> marketInventory) {
         boolean inMarket = true;
         while (inMarket) {
             System.out.println("\n" + ConsoleColors.YELLOW + "--- Market Menu ---" + ConsoleColors.RESET);
@@ -89,7 +120,7 @@ public class MarketController {
             int choice = InputValidator.getValidInt(scanner, "Choose action: ", 1, 3);
 
             switch (choice) {
-                case 1: buyLoopSingleHero(scanner, hero, marketInventory); break;
+                case 1: buyLoopWithPagination(scanner, hero, marketInventory); break;
                 case 2: sellLoopSingleHero(scanner, hero); break;
                 case 3: inMarket = false; break;
             }
@@ -97,18 +128,88 @@ public class MarketController {
         System.out.println(ConsoleColors.GREEN + hero.getName() + " leaves the market." + ConsoleColors.RESET);
     }
 
-    private List<Item> generateMarketInventory() {
+    private List<Item> generateMarketInventoryForLevel(int heroLevel) {
         List<Item> inventory = new ArrayList<>();
         if (globalItemCatalog.isEmpty()) return inventory;
 
-        // Create a shuffled copy of the catalog to pick unique random items
-        List<Item> shuffledCatalog = new ArrayList<>(globalItemCatalog);
-        Collections.shuffle(shuffledCatalog);
-
-        // Select the first N items (e.g., 10)
-        int stockSize = Math.min(10, shuffledCatalog.size());
+        // Filter items by level (hero's level - 2 to hero's level + 2)
+        int minLevel = Math.max(1, heroLevel - 2);
+        int maxLevel = heroLevel + 2;
+        
+        List<Item> levelAppropriateItems = globalItemCatalog.stream()
+            .filter(item -> item.getMinLevel() >= minLevel && item.getMinLevel() <= maxLevel)
+            .collect(java.util.stream.Collectors.toList());
+        
+        // If not enough level-appropriate items, add some from wider range
+        if (levelAppropriateItems.size() < 10) {
+            levelAppropriateItems = globalItemCatalog.stream()
+                .filter(item -> item.getMinLevel() <= heroLevel + 3)
+                .collect(java.util.stream.Collectors.toList());
+        }
+        
+        // Shuffle and select items
+        Collections.shuffle(levelAppropriateItems);
+        int stockSize = Math.min(10, levelAppropriateItems.size());
         for (int i = 0; i < stockSize; i++) {
-            inventory.add(shuffledCatalog.get(i));
+            inventory.add(levelAppropriateItems.get(i));
+        }
+
+        return inventory;
+    }
+    
+    private List<Item> generateMarketInventoryForPosition(int heroLevel, int row, int col) {
+        List<Item> inventory = new ArrayList<>();
+        if (globalItemCatalog.isEmpty()) return inventory;
+
+        // Use position as seed for consistent randomness at each location
+        Random positionRandom = new Random((long) row * 1000 + col);
+        
+        // Create a copy and shuffle with position-based seed
+        List<Item> shuffledCatalog = new ArrayList<>(globalItemCatalog);
+        Collections.shuffle(shuffledCatalog, positionRandom);
+
+        // Create variety by limiting items per level and type
+        Map<Integer, List<Item>> itemsByLevel = new HashMap<>();
+        Map<String, Integer> typeCount = new HashMap<>();
+        
+        // Group items by level
+        for (Item item : shuffledCatalog) {
+            int level = item.getMinLevel();
+            itemsByLevel.computeIfAbsent(level, k -> new ArrayList<>()).add(item);
+        }
+        
+        // Select items with variety constraints
+        int minDesiredLevel = Math.max(1, heroLevel - 2);
+        
+        // First, add items from hero's usable range (limited per level)
+        for (int level = minDesiredLevel; level <= heroLevel && inventory.size() < 12; level++) {
+            List<Item> levelItems = itemsByLevel.get(level);
+            if (levelItems != null) {
+                // Limit to 3-4 items per level to avoid flooding
+                int maxFromThisLevel = Math.min(4, levelItems.size());
+                for (int i = 0; i < maxFromThisLevel && inventory.size() < 12; i++) {
+                    Item item = levelItems.get(i);
+                    String itemType = item.getClass().getSimpleName();
+                    
+                    // Limit items of same type (max 2 weapons, 2 armor, etc.)
+                    if (typeCount.getOrDefault(itemType, 0) < 2) {
+                        inventory.add(item);
+                        typeCount.put(itemType, typeCount.getOrDefault(itemType, 0) + 1);
+                    }
+                }
+            }
+        }
+        
+        // Fill remaining slots with higher level items (preview of future upgrades)
+        for (int level = heroLevel + 1; level <= heroLevel + 3 && inventory.size() < 16; level++) {
+            List<Item> levelItems = itemsByLevel.get(level);
+            if (levelItems != null) {
+                // Only 1-2 items from higher levels
+                int maxFromThisLevel = Math.min(2, levelItems.size());
+                for (int i = 0; i < maxFromThisLevel && inventory.size() < 16; i++) {
+                    inventory.add(levelItems.get(i));
+                }
+            }
         }
 
         return inventory;
@@ -121,6 +222,44 @@ public class MarketController {
         buyLoopSingleHero(scanner, shopper, marketInventory);
     }
 
+    private void buyLoopWithPagination(Scanner scanner, Hero shopper, List<Item> marketInventory) {
+        while (true) {
+            List<Item> currentPageItems = getCurrentPageItems(marketInventory);
+            int totalPages = (int) Math.ceil((double) marketInventory.size() / itemsPerPage);
+            
+            System.out.println("\n" + ConsoleColors.WHITE_BOLD + "--- Items for Sale (Page " + (currentPage + 1) + "/" + totalPages + ") (Shopper: " + shopper.getName() + " | Gold: " + ConsoleColors.YELLOW + shopper.getMoney() + ConsoleColors.RESET + ") ---" + ConsoleColors.RESET);
+            printItemTable(currentPageItems);
+            
+            int optionNum = currentPageItems.size() + 1;
+            if (currentPage > 0) {
+                System.out.println(optionNum + ". Previous Page");
+                optionNum++;
+            }
+            if (currentPage < totalPages - 1) {
+                System.out.println(optionNum + ". Next Page");
+                optionNum++;
+            }
+            System.out.println(optionNum + ". Back");
+
+            int choice = InputValidator.getValidInt(scanner, "Select item to buy: ", 1, optionNum);
+            
+            if (choice <= currentPageItems.size()) {
+                // Buying an item
+                buyItem(scanner, shopper, currentPageItems.get(choice - 1));
+            } else {
+                // Navigation options
+                int navChoice = choice - currentPageItems.size();
+                if (currentPage > 0 && navChoice == 1) {
+                    currentPage--; // Previous page
+                } else if (currentPage < totalPages - 1 && ((currentPage > 0 && navChoice == 2) || (currentPage == 0 && navChoice == 1))) {
+                    currentPage++; // Next page
+                } else {
+                    break; // Back
+                }
+            }
+        }
+    }
+    
     private void buyLoopSingleHero(Scanner scanner, Hero shopper, List<Item> marketInventory) {
         while (true) {
             System.out.println("\n" + ConsoleColors.WHITE_BOLD + "--- Items for Sale (Shopper: " + shopper.getName() + " | Gold: " + ConsoleColors.YELLOW + shopper.getMoney() + ConsoleColors.RESET + ") ---" + ConsoleColors.RESET);
@@ -130,9 +269,18 @@ public class MarketController {
             int choice = InputValidator.getValidInt(scanner, "Select item to buy: ", 1, marketInventory.size() + 1);
             if (choice == marketInventory.size() + 1) break;
 
-            Item item = marketInventory.get(choice - 1);
-            processPurchase(shopper, item);
+            buyItem(scanner, shopper, marketInventory.get(choice - 1));
         }
+    }
+    
+    private List<Item> getCurrentPageItems(List<Item> allItems) {
+        int startIndex = currentPage * itemsPerPage;
+        int endIndex = Math.min(startIndex + itemsPerPage, allItems.size());
+        return allItems.subList(startIndex, endIndex);
+    }
+    
+    private void buyItem(Scanner scanner, Hero shopper, Item item) {
+        processPurchase(shopper, item);
     }
 
     private void processPurchase(Hero hero, Item item) {
@@ -235,7 +383,7 @@ public class MarketController {
         System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+----------+--------------------------------+" + ConsoleColors.RESET);
     }
 
-    // Helper to format item details concisely for the table
+
     private String extractStats(Item item) {
         if (item instanceof Weapon) {
             Weapon w = (Weapon) item;
