@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------
 - Name: Patrick Kola 
 - Email: kolap@bu.edu
-- Student ID: 
+- Student ID: U63346026
 
 - Name: Aayush Kumar
 - Email: aayushks@bu.edu
@@ -30,278 +30,67 @@ Both games share the same character system, combat mechanics, and progression bu
 - **Main.java**: Entry point that bootstraps the GameRunner
 
 ## **Game Framework** (`src/common/`)
-- **GameRunner.java**: Main menu system, game selection, and restart logic
-- **InputValidator.java**: Safe input handling with validation and error recovery
-- **ErrorHandler.java**: Centralized error reporting and logging
-- **RandomGenerator.java**: Singleton for consistent random number generation
+- **GameRunner.java**: Main menu system and game selection
+- **InputValidator.java**: Safe input handling with validation
+- **ErrorHandler.java**: Centralized error reporting
+- **RandomGenerator.java**: Singleton for random number generation
+- **GameInfo.java**: Abstract base for game information display
+- **LegendsGameInfo.java**: Game guide for Legends: Monsters and Heroes
+- **ValorGameInfo.java**: Game guide for Legends of Valor
 
 ## **Game Engines** (`src/game/`)
-- **Game.java**: Abstract template defining the universal game lifecycle
+- **Game.java**: Abstract template defining universal game lifecycle
 - **LegendsGame.java**: Classic exploration RPG with random world generation
-  - Random 4×4 to 20×20 grid worlds
-  - Market trading system
-  - Monster ambush encounters (50% chance)
-  - Infinite progression and party management
 - **ValorGame.java**: Strategic tower defense on fixed 8×8 grid
-  - 3-lane warfare with hero positioning
-  - Real-time terrain bonuses (Bush, Cave, Koulou)
-  - Hero-Monster collision detection
-  - Nexus defense objectives
-- **BattleController.java**: Turn-based combat engine
-  - Physical attacks with weapon scaling
-  - Spell casting with elemental effects
-  - Dodge/defense calculations
-  - Experience and gold rewards
-- **MarketController.java**: Dynamic trading system
-  - Buy/Sell with 50% return rate
-  - Hero-specific inventory management
-  - Item categorization and filtering
+- **BattleController.java**: Turn-based combat with equipment durability and boosts
+- **MarketController.java**: Dynamic trading system with level-scaling
 
 ## **Entity System** (`src/entities/`)
 - **RPGCharacter.java**: Abstract base class for all living entities
-  - Core stats (HP, Mana, Level)
-  - Position tracking (Row, Col, Lane)
-  - Faint/Revive mechanics
-- **Hero.java**: Player character implementation
-  - Class-based stat growth (Warrior, Sorcerer, Paladin)
-  - Equipment system (Weapon, Armor)
-  - Inventory management
-  - Leveling with 5%/10% stat increases
-  - Terrain bonus tracking and application
-- **Monster.java**: Enemy implementation
-  - Type-based specialization (Dragon, Exoskeleton, Spirit)
-  - Level-based stat scaling
-  - Combat abilities (damage, defense, dodge)
-  - Spell effect susceptibility
-- **Party.java**: Hero group management
-  - Multi-hero operations
-  - Collective faint/defeat detection
-  - Party-wide stat display
+- **Hero.java**: Player character with class-based growth and equipment
+- **Warrior.java**: Warrior hero class specialization (Strength/Agility focus)
+- **Sorcerer.java**: Sorcerer hero class specialization (Dexterity/Agility focus)
+- **Paladin.java**: Paladin hero class specialization (Strength/Dexterity focus)
+- **Monster.java**: Enemy implementation with type specialization
+- **Dragon.java**: Dragon monster type with high damage
+- **Exoskeleton.java**: Exoskeleton monster type with high defense
+- **Spirit.java**: Spirit monster type with high dodge
+- **Party.java**: Hero group management and collective operations
 
 ## **Item System** (`src/items/`)
 - **Item.java**: Abstract base for all collectible objects
 - **Inventory.java**: Type-safe storage with category filtering
-  - Separate collections for weapons, armor, spells, potions
-  - Add/remove operations
-  - Category-specific retrieval methods
-- **Weapon.java**: Melee equipment with damage bonuses
-- **Armor.java**: Defensive equipment with damage reduction
+- **Weapon.java**: Melee equipment with damage bonuses and durability
+- **Armor.java**: Defensive equipment with damage reduction and durability
 - **Spell.java**: Magic items with elemental effects
-  - **Fire**: Reduces enemy defense by 10%
-  - **Ice**: Reduces enemy damage by 10%
-  - **Lightning**: Reduces enemy dodge by 10%
-  - Mana cost system
-  - Dexterity-based damage scaling
-- **Potion.java**: Consumables with stat modifications
-  - Temporary/permanent effects
-  - Multiple attribute targeting
-  - Single-use consumption
+- **FireSpell.java**: Fire spells that reduce enemy defense
+- **IceSpell.java**: Ice spells that reduce enemy damage
+- **LightningSpell.java**: Lightning spells that reduce enemy dodge
+- **Potion.java**: Abstract base for consumable items
+- **HealingPotion.java**: Restores hero HP
+- **ManaPotion.java**: Restores hero MP
+- **StatPotion.java**: Temporary battle stat boosts
 
 ## **Board System** (`src/board/`)
-- **Board.java**: Abstract board interface
-  - Coordinate validation
-  - Cell access methods
-  - Abstract rendering
-- **LegendsBoard.java**: Random world generator
-  - Procedural terrain generation
-  - Market placement (15% density)
-  - Inaccessible walls (20% density)
-  - Party position tracking with ANSI colors
-- **ValorBoard.java**: Fixed tactical grid
-  - 8×8 grid with 3 lanes separated by walls
-  - Enhanced ASCII graphics with box-drawing characters
-  - Terrain distribution (Bush, Cave, Koulou)
-  - Hero/Monster position visualization
-  - Real-time terrain bonus application
-- **Cell.java**: Individual tile implementation
-  - Occupancy management (Hero, Monster)
-  - Terrain type storage
-  - Accessibility logic
-  - Visual representation with ANSI colors
-- **CellType.java**: Terrain type enumeration
-  - Visual symbols and color codes
-  - Accessibility rules
-  - Terrain-specific bonuses:
-    - **BUSH**: +10% Dexterity (improves spell damage)
-    - **CAVE**: +10% Agility (improves dodge chance)
-    - **KOULOU**: +10% Strength (improves attack damage)
-    - **NEXUS**: Hero spawn/market access point
-    - **INACCESSIBLE**: Impassable barriers
+- **Board.java**: Abstract board interface with coordinate validation
+- **LegendsBoard.java**: Random world generator with procedural terrain
+- **ValorBoard.java**: Fixed 8×8 tactical grid with 3 lanes
+- **Cell.java**: Individual tile with occupancy and terrain management
+- **CellType.java**: Terrain types with bonuses (Bush, Cave, Koulou, Nexus)
 
 ## **Data Loading** (`src/utils/`)
-- **GameDataLoader.java**: Factory for creating game objects from text files
-  - **Heroes**: `Warriors.txt`, `Sorcerers.txt`, `Paladins.txt`
-  - **Monsters**: `Dragons.txt`, `Exoskeletons.txt`, `Spirits.txt`
-  - **Items**: `Weaponry.txt`, `Armory.txt`, `Potions.txt`
-  - **Spells**: `FireSpells.txt`, `IceSpells.txt`, `LightningSpells.txt`
-  - CSV parsing with error handling
-  - Type-safe object instantiation
+- **GameDataLoader.java**: Factory for creating game objects from CSV files
+- **ConsoleColors.java**: ANSI color codes for console output
 
 ## **Data Assets** (`data/`)
-Text files containing game data in CSV format:
-- **Character Data**: Pre-defined heroes and monsters with base stats
-- **Item Data**: Equipment and consumables with prices and effects
-- **Spell Data**: Magic abilities with damage, cost, and elemental types
+- **Warriors.txt**, **Sorcerers.txt**, **Paladins.txt**: Hero data
+- **Dragons.txt**, **Exoskeletons.txt**, **Spirits.txt**: Monster data
+- **Weaponry.txt**, **Armory.txt**, **Potions.txt**: Item data
+- **FireSpells.txt**, **IceSpells.txt**, **LightningSpells.txt**: Spell data
 
 ## **Compilation Output** (`bin/`)
-- Compiled `.class` files organized by package structure
-- Ready for execution with `java -cp bin Main`  
+- Compiled `.class` files organized by package structure  
 
-
-# Features
-
-## Dual Game Modes
-- **Legends**: Classic exploration RPG with randomly generated worlds (4×4 to 20×20)
-- **Valor**: Strategic tower defense on fixed 8×8 tactical battlefield
-- Seamless game selection and restart system
-
-## Dynamic Worlds
-### Legends Mode:
-- Procedurally generated grid maps
-- Market towns for trading
-- Monster ambush encounters (50% chance)
-- Party exploration with position tracking
-
-### Valor Mode:
-- Fixed 8×8 battlefield with 3 distinct lanes
-- Strategic terrain bonuses:
-  - **Bush (B)**: +10% Dexterity (spell damage)
-  - **Cave (C)**: +10% Agility (dodge chance)
-  - **Koulou (K)**: +10% Strength (attack damage)
-- Hero-Monster collision detection
-- Nexus defense objectives
-
-## Turn-Based Combat
-- Physical attacks with weapon scaling
-- Elemental spells (Fire, Ice, Lightning) with tactical effects
-- Consumable potions for healing and stat boosts
-- Mid-battle equipment changes
-- Monster specializations:
-  - **Dragons** → High base damage
-  - **Exoskeletons** → High defense
-  - **Spirits** → High dodge chance
-
-## Market System
-- Dynamic buy/sell economy (50% return rate)
-- Equipment trading: Weapons, Armor
-- Magic system: Elemental spells with mana costs
-- Consumables: Healing and stat-boosting potions
-- Nexus-based trading in Valor mode
-
-## RPG Progression
-- Class-based stat growth (Warriors, Sorcerers, Paladins)
-- Favored stats grow faster (+10% vs +5%)
-- Automatic HP/MP regeneration
-- Experience and gold rewards from combat
-- Real-time terrain bonuses in Valor
-
-## Enhanced UI
-- ANSI color-coded messages and terrain
-- Enhanced ASCII graphics with proper alignment
-- Comprehensive stat tables and inventory displays
-- Robust input validation with error handling
-- Instant restart system for continuous gameplay  
-
----
-
-# Game Structure
-
-## Game Modes
-
-| Mode     | Objective              | Map Type        | Strategy                    |
-|----------|------------------------|-----------------|-----------------------------|
-| Legends  | Survive & Level Up     | Random 4×4-20×20| Exploration & Resource Mgmt |
-| Valor    | Defend Your Nexus      | Fixed 8×8       | Tactical Positioning        |
-
-## Terrain Types
-
-### Legends Mode:
-| Tile Type     | Symbol | Description                      |
-|---------------|--------|---------------------------------|
-| Common        | .      | Normal tile with 50% ambush chance |
-| Market        | M      | Safe trade zone                  |
-| Inaccessible  | X      | Wall tile                        |
-| Party         | P      | Shows your current location      |
-
-### Valor Mode:
-| Terrain       | Symbol | Effect                          |
-|---------------|--------|---------------------------------|
-| Bush          | B      | +10% Dexterity (spell damage)   |
-| Cave          | C      | +10% Agility (dodge chance)     |
-| Koulou        | K      | +10% Strength (attack damage)   |
-| Nexus         | N      | Hero spawn & market access      |
-| Walls         | X      | Lane barriers (inaccessible)    |
-| Common        | -      | Plain terrain (no bonuses)      |
-| Heroes        | H1-H3  | Player characters by lane       |
-| Monsters      | M1-M3  | Enemies advancing by lane       |
-
-
-## Heroes
-
-| Class     | Str  | Dex  | Agi  | Description                  |
-|-----------|------|------|------|------------------------------|
-| Warrior   | High | Med  | High | Strong melee fighter         |
-| Sorcerer  | Low  | High | High | Spell specialist             |
-| Paladin   | High | High | Med  | Balanced tank/DPS hybrid     |
-
-
-## Monsters
-
-| Type        | Specialty        |
-|-------------|------------------|
-| Dragon      | High base damage |
-| Exoskeleton | High defense     |
-| Spirit      | High dodge chance |
-
----
-
-# How to Play
-
-## Controls
-
-### Legends Mode:
-| Key | Action     | Description              |
-|-----|------------|---------------------------|
-| W   | Move Up    | Move north               |
-| A   | Move Left  | Move west                |
-| S   | Move Down  | Move south               |
-| D   | Move Right | Move east                |
-| M   | Market     | Enter shop (only on M)   |
-| I   | Info       | Show stats and inventory |
-| Q   | Quit       | Exit game                |
-
-### Valor Mode:
-| Key | Action     | Description              |
-|-----|------------|---------------------------|
-| W   | Move       | Choose direction to move |
-| A   | Attack     | Physical combat          |
-| C   | Cast Spell | Use magic abilities      |
-| T   | Teleport   | Move to ally's lane      |
-| R   | Recall     | Return to Nexus          |
-| M   | Market     | Shop at Nexus            |
-| P   | Potion     | Use consumables          |
-| E   | Equip      | Change gear              |
-| I   | Info       | Show character details   |
-| Q   | Quit       | Exit game                |
-
-## Combat System
-
-| Action     | Description                                |
-|------------|--------------------------------------------|
-| Attack     | Physical damage (Strength + Weapon)        |
-| Cast Spell | Uses Mana (Dexterity scales damage)        |
-| Use Potion | Heal or boost stats                        |
-| Equip      | Change gear mid-battle                     |
-
-### Spell Types:
-- **Fire** → Lowers enemy defense  
-- **Ice** → Lowers enemy damage  
-- **Lightning** → Lowers enemy dodge  
-
-### Mechanics & Balance
-- Dodge scales from Agility (capped at ~60–75%)  
-- Level Ups increase stats by 5% (favored +10%)  
-- Selling returns 50% of item value  
 
 
 # Installation & Run
