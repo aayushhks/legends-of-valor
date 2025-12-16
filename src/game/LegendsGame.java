@@ -113,15 +113,18 @@ public class LegendsGame extends Game {
                     (i + 1), h.getName(), h.getLevel(), h.getHp(), h.getMana(), h.getStrength(), h.getDexterity(), h.getAgility());
         }
         System.out.println(ConsoleColors.CYAN + "+----+----------------------+-----+------+------+------+------+------+" + ConsoleColors.RESET);
-        System.out.println((choiceList.size() + 1) + ". Quit Game");
+        System.out.println((choiceList.size() + 1) + ". " + ConsoleColors.YELLOW + "Back to Class Selection" + ConsoleColors.RESET);
+        System.out.println((choiceList.size() + 2) + ". " + ConsoleColors.RED + "Quit Game" + ConsoleColors.RESET);
 
-        int heroIndex = InputValidator.getValidInt(scanner, "Select hero ID: ", 1, choiceList.size() + 1) - 1;
+        int heroChoice = InputValidator.getValidInt(scanner, "Select hero ID: ", 1, choiceList.size() + 2);
 
-        if (heroIndex == choiceList.size()) {
-            return null;
+        if (heroChoice == choiceList.size() + 1) {
+            return selectHero(scanner); // Go back to class selection
+        } else if (heroChoice == choiceList.size() + 2) {
+            return null; // Quit game
         }
 
-        return choiceList.remove(heroIndex);
+        return choiceList.remove(heroChoice - 1);
     }
 
     @Override
@@ -144,8 +147,7 @@ public class LegendsGame extends Game {
             case "d": moveParty(scanner, 0, 1); break;
             case "m": handleMarketInteraction(scanner); break;
             case "i":
-                showDetailedInfo();
-                skipNextRender = true;
+                showDetailedInfo(scanner);
                 break;
             case "q": quitGame = true; break;
         }
@@ -208,38 +210,38 @@ public class LegendsGame extends Game {
             System.out.println(ConsoleColors.YELLOW + "There is no market here." + ConsoleColors.RESET);
             return;
         }
-        marketController.enterMarket(scanner, party);
+        marketController.enterMarketAtPosition(scanner, party, party.getRow(), party.getCol());
     }
 
-    private void showDetailedInfo() {
+    private void showDetailedInfo(Scanner scanner) {
         System.out.println(ConsoleColors.WHITE_BOLD + "\n=== DETAILED HERO INFORMATION ===" + ConsoleColors.RESET);
 
         for (Hero h : party.getHeroes()) {
-            System.out.println("\n" + ConsoleColors.PURPLE + "+ " + String.format("[%s] %s (Lvl %d)", h.getType(), h.getName(), h.getLevel()) + ConsoleColors.RESET);
-
-            System.out.println(ConsoleColors.CYAN + "+----------+----------+----------+----------+----------+------------+------------+" + ConsoleColors.RESET);
-            System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " HP: " + ConsoleColors.GREEN + "%-5.0f" + ConsoleColors.RESET + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " MP: " + ConsoleColors.BLUE + "%-5.0f" + ConsoleColors.RESET + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " STR: %-4.0f" + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " DEX: %-4.0f" + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " AGI: %-4.0f" + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " GOLD: " + ConsoleColors.YELLOW + "%-5.0f" + ConsoleColors.RESET + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " XP: %-5d " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
-                    h.getHp(), h.getMana(), h.getStrength(), h.getDexterity(), h.getAgility(), h.getMoney(), h.getExperience());
-            System.out.println(ConsoleColors.CYAN + "+----------+----------+----------+----------+----------+------------+------------+" + ConsoleColors.RESET);
-
-            System.out.println(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " " + ConsoleColors.WHITE_BOLD + "INVENTORY" + ConsoleColors.RESET + "                                                                    " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET);
-            System.out.println(ConsoleColors.CYAN + "+----------------------+--------+----------+--------------------------------------+" + ConsoleColors.RESET);
+            System.out.println("\n" + ConsoleColors.PURPLE + "[" + h.getType() + "] " + h.getName() + " (Lvl " + h.getLevel() + ")" + ConsoleColors.RESET);
+            
+            int xpNeeded = h.getLevel() * 10;
+            System.out.println(ConsoleColors.CYAN + "HP: " + ConsoleColors.GREEN + (int)h.getHp() + ConsoleColors.RESET + 
+                             ConsoleColors.CYAN + " | MP: " + ConsoleColors.BLUE + (int)h.getMana() + ConsoleColors.RESET + 
+                             ConsoleColors.CYAN + " | STR: " + (int)h.getStrength() + 
+                             " | DEX: " + (int)h.getDexterity() + 
+                             " | AGI: " + (int)h.getAgility() + 
+                             " | GOLD: " + ConsoleColors.YELLOW + (int)h.getMoney() + ConsoleColors.RESET + 
+                             ConsoleColors.CYAN + " | XP: " + h.getExperience() + "/" + xpNeeded + ConsoleColors.RESET);
 
             List<Item> items = h.getInventory().getItems();
             if (items.isEmpty()) {
-                System.out.println(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " (Empty)              " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + "        " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + "          " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + "                                      " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET);
+                System.out.println(ConsoleColors.YELLOW + "Inventory: Empty" + ConsoleColors.RESET);
             } else {
+                System.out.println(ConsoleColors.CYAN + "Inventory (" + items.size() + " items):" + ConsoleColors.RESET);
                 for (Item item : items) {
                     String stats = extractItemStats(item);
-                    if (stats.length() > 40) stats = stats.substring(0, 37) + "...";
-
-                    System.out.printf(ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-20s " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " Lv%-4d " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " " + ConsoleColors.YELLOW + "%-8.0f" + ConsoleColors.RESET + " " + ConsoleColors.CYAN + "|" + ConsoleColors.RESET + " %-36s " + ConsoleColors.CYAN + "|\n" + ConsoleColors.RESET,
-                            item.getName(), item.getMinLevel(), item.getPrice(), stats);
+                    System.out.println("  - " + item.getName() + " (Lv" + item.getMinLevel() + ") " + stats);
                 }
             }
-            System.out.println(ConsoleColors.CYAN + "+----------------------+--------+----------+--------------------------------------+" + ConsoleColors.RESET);
         }
-        System.out.println("Press Enter to continue...");
+        
+        System.out.println("\n" + ConsoleColors.YELLOW + "Press Enter to continue..." + ConsoleColors.RESET);
+        scanner.nextLine(); // This will wait for Enter key
     }
 
     private String extractItemStats(Item item) {
@@ -285,13 +287,9 @@ public class LegendsGame extends Game {
         String input = InputValidator.getValidOption(scanner, "\n" + ConsoleColors.YELLOW + "Do you want to play again? (yes/no): " + ConsoleColors.RESET, "y", "yes", "n", "no");
 
         if (input.equals("y") || input.equals("yes")) {
-            // Restart the game
-            System.out.println(ConsoleColors.GREEN + "Starting a new game..." + ConsoleColors.RESET);
-
-            quitGame = false;
-            skipNextRender = false;
-
-            play(scanner);
+            // Restart the entire application to go back to game selection
+            System.out.println(ConsoleColors.GREEN + "Returning to main menu..." + ConsoleColors.RESET);
+            common.GameRunner.run();
         } else {
             System.out.println(ConsoleColors.CYAN + "Goodbye!" + ConsoleColors.RESET);
             System.exit(0);

@@ -41,12 +41,11 @@ public class GameDataLoader {
                     // Format: Name/mana/strength/agility/dexterity/starting money/starting experience
                     if (parts.length < 7) continue;
 
-                    Hero hero = createHero(parts[0], type,
-                            Double.parseDouble(parts[1]), // Mana as HP
+                    Hero hero = new Hero(parts[0], type,
                             Double.parseDouble(parts[1]), // Mana
                             Double.parseDouble(parts[2]), // Str
-                            Double.parseDouble(parts[4]), // Dex
                             Double.parseDouble(parts[3]), // Agi
+                            Double.parseDouble(parts[4]), // Dex
                             Double.parseDouble(parts[5]), // Money
                             Integer.parseInt(parts[6])    // XP
                     );
@@ -277,15 +276,19 @@ public class GameDataLoader {
 
     // Public factory method for runtime monster creation
     public static Monster createMonsterFromTemplate(Monster template, int level) {
-        double levelMultiplier = level / (double)Math.max(1, template.getLevel());
+        // Much more reasonable scaling - base damage is way too high in data files
+        // Scale damage to be appropriate for hero HP levels (heroes have ~150-300 HP)
+        double scaledDamage = Math.max(10, level * 15 + (level * 5)); // Level 1: ~20, Level 2: ~40, Level 5: ~100
+        double scaledDefense = Math.max(5, level * 8 + (level * 2)); // Level 1: ~10, Level 2: ~20, Level 5: ~50
+        
         return createMonster(
             template.getName(),
             template.getType(), 
             level,
-            level * 100.0, // HP = level * 100
-            template.getBaseDamage() * levelMultiplier,
-            template.getDefense() * levelMultiplier,
-            template.getDodgeChance() * 100
+            level * 100.0, // HP = level * 100 (reasonable)
+            scaledDamage, // Reasonable damage scaling
+            scaledDefense, // Reasonable defense scaling
+            Math.min(50, template.getDodgeChance()) // Cap dodge at 50%
         );
     }
 
