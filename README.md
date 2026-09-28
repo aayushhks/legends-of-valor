@@ -1,15 +1,6 @@
 # CS611-Assignment < Legends of Valor >
 ## < Legends of Valor >
 ---------------------------------------------------------------------------
-- Name: Patrick Kola 
-- Email: kolap@bu.edu
-- Student ID: U63346026
-
-- Name: Aayush Kumar
-- Email: aayushks@bu.edu
-- Student ID: U73761402
-
----
 
 # Overview
 Legends of Valor is a comprehensive RPG suite featuring two distinct game modes:
